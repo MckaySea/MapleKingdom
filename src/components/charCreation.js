@@ -3,16 +3,11 @@ import React from 'react';
 
 function CharacterCreation({ onCharacterCreate }) {
   const pngUrls = [
-    '/sprites3/4.png',
     '/sprites3/5.png',
-    '/sprites3/6.png',
-    '/sprites3/7.png',
-    '/sprites3/8.png',
-    '/sprites3/9.png',
-    '/sprites3/0.png',
-    '/sprites3/1.png',
-    '/sprites3/2.png',
-    '/sprites3/3.png',
+    // '/sprites3/7.png',
+
+    // '/sprites3/2.png',
+  
   ];
 
   const handlePngSelect = (url) => {
