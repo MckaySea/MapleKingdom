@@ -490,15 +490,16 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
     if (enemyHP <= 0) {
       handleEnemyDefeat();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enemyHP]);
-
-  // Watch for playerHP changes to handle player defeat
+  
   useEffect(() => {
     if (playerHP <= 0) {
       handlePlayerDefeat();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playerHP]);
-
+  
   return (
     <div
       style={{ position: 'relative', width: canvasWidth, height: canvasHeight }}
