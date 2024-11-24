@@ -42,7 +42,7 @@ function App() {
 
   const handleBackToLobby = () => {
     setLoading(true); // Start loading
-    const savedStats = Cookies.get('selectedStats');
+    const savedStats = Cookies.get('stats');
     const savedPng = Cookies.get('selectedPng');
     const savedCursor = Cookies.get('cursorPng');
 
@@ -64,7 +64,7 @@ function App() {
 
   const updateStats = (newStats) => {
     setStats(newStats);
-    Cookies.set('selectedStats', JSON.stringify(newStats), { expires: 7 });
+    Cookies.set('stats', JSON.stringify(newStats), { expires: 7 });
   };
 
   const updateCursor = (newCursorPng) => {
