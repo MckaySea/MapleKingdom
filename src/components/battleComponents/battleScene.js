@@ -438,11 +438,11 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
 
-    let isHovering = false;
+  
 
     // Check if the mouse is over the Back to Lobby button
     if (mouseX >= 10 && mouseX <= 160 && mouseY >= 10 && mouseY <= 50) {
-      isHovering = true;
+     
       if (hoveredButtonRef.current !== 'backButton') {
         hoveredButtonRef.current = 'backButton';
         playHoverSound();
@@ -455,7 +455,7 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
       mouseY >= 60 &&
       mouseY <= 100
     ) {
-      isHovering = true;
+      
       if (hoveredButtonRef.current !== 'turnButton') {
         hoveredButtonRef.current = 'turnButton';
         playHoverSound();
