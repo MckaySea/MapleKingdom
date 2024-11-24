@@ -108,23 +108,23 @@ function BattleScene({ selectedPng, stats, onBackToLobby, addItemToInventory, se
         agility: 10,
         level: 1,
         lootTable: [
-          { item: 'Health Potion', dropRate: 0.5 }, // 50% chance
-          { item: 'Gold Coin', dropRate: 0.8 },     // 80% chance
+          { item: 'Health Potion', dropRate: 0.4 }, // 50% chance
+          { item: 'Maple Staff', dropRate: 0.1 },     // 20% cance
         ],
       },
       {
-        name: 'Pig',
+        name: 'Golem',
         image: '/pigs/1.png',
         attackImage: '/pigs/0.png',
-        attack: 20,
-        defense: 8,
-        maxHp: 100,
+        attack: 26,
+        defense: 15,
+        maxHp: 110,
         agility: 15,
         level: 5,
         lootTable: [
           { item: 'Health Potion', dropRate: 0.6 }, // 60% chance
           { item: 'Mana Potion', dropRate: 0.3 },   // 30% chance
-          { item: 'Gold Coin', dropRate: 0.9 },     // 90% chance
+          { item: 'Shield', dropRate: 0.1 },     // 90% chance
         ],
       },
       // Add more enemies as needed
