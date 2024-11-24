@@ -329,14 +329,14 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
     if (enemyHP <= 0) {
       handleEnemyDefeat();
     }
-  }, [enemyHP, handleEnemyDefeat]);
+  }, [enemyHP]);
 
   // Watch for playerHP changes to handle player defeat
   useEffect(() => {
     if (playerHP <= 0) {
       handlePlayerDefeat();
     }
-  }, [playerHP, handlePlayerDefeat]);
+  }, [playerHP]);
 
   // Handle skill actions
   const handleSkillAction = (skillName) => {
