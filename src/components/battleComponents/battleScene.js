@@ -17,7 +17,7 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
   const canvasWidth = window.innerWidth;
   const canvasHeight = window.innerHeight;
 
-  // Destructure stats
+  // Destructure player stats
   const {
     level: playerLevel,
     currentExp,
@@ -28,7 +28,7 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
     agility: playerAgility,
   } = stats;
 
-  // Player HP as state
+  // Player HP state
   const [playerHP, setPlayerHP] = useState(playerMaxHp);
 
   // Define minimum and maximum sizes for the player's image
@@ -73,10 +73,11 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
   const playVictorySound = useAudio('/sounds/quest.mp3');
   const playMissSound = useAudio('/sounds/miss.mp3');
 
-  // Load images
+  // Load background image
   const background = useRef(new Image());
   background.current.src = '/maplebattle.jpg';
 
+  // Load player images
   const playerImage = useRef(new Image());
   playerImage.current.src = selectedPng;
 
@@ -84,31 +85,34 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
   playerAttackImage.current.src = '/sprites3/7.png';
 
   // Define an array of enemy types with their stats
-  const enemies = [
-    {
-      name: 'Mushroom',
-      image: '/sprites2/mush.png',
-      attackImage: '/sprites2/mushatk.png',
-      attack: 15,
-      defense: 5,
-      maxHp: 80,
-      agility: 10,
-      level: 1,
-    },
-    {
-      name: 'Pig',
-      image: '/pigs/1.png',
-      attackImage: '/pigs/0.png',
-      attack: 20,
-      defense: 8,
-      maxHp: 100,
-      agility: 15,
-      level: 5,
-    },
-    // Add more enemies as needed
-  ];
+  const enemies = useMemo(
+    () => [
+      {
+        name: 'Mushroom',
+        image: '/sprites2/mush.png',
+        attackImage: '/sprites2/mushatk.png',
+        attack: 15,
+        defense: 5,
+        maxHp: 80,
+        agility: 10,
+        level: 1,
+      },
+      {
+        name: 'Pig',
+        image: '/pigs/1.png',
+        attackImage: '/pigs/0.png',
+        attack: 20,
+        defense: 8,
+        maxHp: 100,
+        agility: 15,
+        level: 5,
+      },
+      // Add more enemies as needed
+    ],
+    []
+  );
 
-  // Randomly select an enemy at the beginning
+  // Randomly select an enemy at the beginning and store in state
   const [selectedEnemy] = useState(() => {
     const randomEnemyIndex = Math.floor(Math.random() * enemies.length);
     return enemies[randomEnemyIndex];
@@ -118,6 +122,7 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
   const enemyImage = useRef(new Image());
   const enemyAttackImage = useRef(new Image());
 
+  // Load enemy images when selectedEnemy changes
   useEffect(() => {
     enemyImage.current.src = selectedEnemy.image;
     enemyAttackImage.current.src = selectedEnemy.attackImage;
@@ -132,7 +137,7 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
     level: selectedEnemy.level,
   });
 
-  // Initialize enemy HP
+  // Initialize enemy HP based on enemy stats
   useEffect(() => {
     setEnemyHP(enemyStats.maxHp);
   }, [enemyStats.maxHp]);
@@ -166,14 +171,21 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
 
     const radius = 50; // Radius of circular motion
 
+    // Calculate center of the canvas
+    const centerX = canvasWidth / 2;
+    const centerY = canvasHeight / 2;
+
+    // Define horizontal offset from the center for player and enemy
+    const horizontalOffset = 350; // Adjust this value as needed
+
     // Calculate player position
     let playerX, playerY;
     if (currentTurn === 'Player') {
-      playerX = 300 + radius * Math.cos(anglePlayerRef.current);
-      playerY = canvasHeight - 350 + radius * Math.sin(anglePlayerRef.current);
+      playerX = centerX - horizontalOffset + radius * Math.cos(anglePlayerRef.current);
+      playerY = centerY + radius * Math.sin(anglePlayerRef.current);
     } else {
-      playerX = 300;
-      playerY = canvasHeight - 350;
+      playerX = centerX - horizontalOffset;
+      playerY = centerY;
     }
 
     // Adjust position to center the image
@@ -183,15 +195,11 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
     // Calculate enemy position
     let enemyX, enemyY;
     if (currentTurn === 'Enemy') {
-      enemyX =
-        canvasWidth -
-        400 +
-        radius * Math.cos(angleEnemyRef.current);
-      enemyY =
-        220 + radius * Math.sin(angleEnemyRef.current);
+      enemyX = centerX + horizontalOffset + radius * Math.cos(angleEnemyRef.current);
+      enemyY = centerY + radius * Math.sin(angleEnemyRef.current);
     } else {
-      enemyX = canvasWidth - 400;
-      enemyY = 220;
+      enemyX = centerX + horizontalOffset;
+      enemyY = centerY;
     }
 
     // Adjust position to center the image
@@ -241,7 +249,7 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
     ctx.font = '30px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(`${currentTurn}'s Turn`, canvasWidth / 2, 50);
+    ctx.fillText(`${currentTurn}'s Turn`, centerX, 50);
 
     // Draw experience and level
     ctx.fillStyle = 'red';
@@ -273,7 +281,7 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
       isHovered: hoveredButtonRef.current === 'turnButton',
     });
 
-    // Increment angles
+    // Increment angles for circular motion
     const maxAngle = 2 * Math.PI;
 
     if (currentTurn === 'Player') {
