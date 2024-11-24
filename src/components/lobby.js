@@ -1,13 +1,37 @@
-import React, { useRef } from 'react';
+// Lobby.js
+import React, { useRef, useMemo } from 'react';
 import CanvasRenderer from './battleComponents/canvasRenderer';
 import useAudio from './battleComponents/useAudio';
 
-function LobbyScene({ stats, onEnterBattle, characterPng, selectedPng }) {
+function Lobby({ stats, onEnterBattle, selectedPng }) {
   const canvasWidth = window.innerWidth;
   const canvasHeight = window.innerHeight;
 
   // Player stats
-  const { level, currentExp, expToLevelUp, attack, defense, maxHp, agility, dexterity, luck } = stats;
+  const {
+    level,
+    currentExp,
+    expToLevelUp,
+    attack,
+    defense,
+    maxHp,
+    agility,
+    dexterity,
+    luck,
+  } = stats;
+
+  // Define minimum and maximum sizes
+  const playerMinSize = 25; // Smaller size at level 1
+  const playerMaxSize = 150; // Maximum size at higher levels
+  const playerMaxLevel = 50; // Level at which the size caps
+
+  // Calculate player image size based on level
+  const playerImageSize = useMemo(() => {
+    const sizeIncrement =
+      (playerMaxSize - playerMinSize) / (playerMaxLevel - 1);
+    const size = playerMinSize + sizeIncrement * (level - 1);
+    return Math.min(size, playerMaxSize); // Ensure size doesn't exceed maxSize
+  }, [level]);
 
   // Audio hooks
   const playHoverSound = useAudio('/sounds/hover.mp3');
@@ -49,12 +73,20 @@ function LobbyScene({ stats, onEnterBattle, characterPng, selectedPng }) {
     // Animate the character sway
     const swayAmplitude = 10; // Amplitude of the sway in pixels
     const swaySpeed = 0.05; // Speed of the sway
-    const swayOffset = Math.sin(frameCount.current * swaySpeed) * swayAmplitude;
+    const swayOffset =
+      Math.sin(frameCount.current * swaySpeed) * swayAmplitude;
 
     // Draw character image with sway effect
-    const characterX = canvasWidth / 2 - 50;
+    const characterX = canvasWidth / 2 - playerImageSize / 2;
     const characterY = canvasHeight / 2 - 200 + swayOffset;
-    ctx.drawImage(characterImage.current, characterX, characterY, 100, 100);
+
+    ctx.drawImage(
+      characterImage.current,
+      characterX,
+      characterY,
+      playerImageSize,
+      playerImageSize
+    );
 
     // Draw buttons
     drawCanvasButton(ctx, {
@@ -80,7 +112,10 @@ function LobbyScene({ stats, onEnterBattle, characterPng, selectedPng }) {
   };
 
   // Function to draw buttons on canvas
-  const drawCanvasButton = (ctx, { x, y, width, height, text, isHovered }) => {
+  const drawCanvasButton = (
+    ctx,
+    { x, y, width, height, text, isHovered }
+  ) => {
     ctx.fillStyle = isHovered ? '#FF8261' : '#FF6347'; // Hover effect
     ctx.fillRect(x, y, width, height);
 
@@ -154,7 +189,9 @@ function LobbyScene({ stats, onEnterBattle, characterPng, selectedPng }) {
   };
 
   return (
-    <div style={{ position: 'relative', width: canvasWidth, height: canvasHeight }}>
+    <div
+      style={{ position: 'relative', width: canvasWidth, height: canvasHeight }}
+    >
       <CanvasRenderer
         draw={draw}
         width={canvasWidth}
@@ -166,4 +203,4 @@ function LobbyScene({ stats, onEnterBattle, characterPng, selectedPng }) {
   );
 }
 
-export default LobbyScene;
+export default Lobby;

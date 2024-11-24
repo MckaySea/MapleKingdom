@@ -1,5 +1,11 @@
 // BattleScene.js
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useMemo,
+} from 'react';
 import CanvasRenderer from './canvasRenderer';
 import SkillButton from './skillButton';
 import HPBar from './hpBar';
@@ -13,24 +19,30 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
 
   // Destructure stats
   const {
-    level,
+    level: playerLevel,
     currentExp,
     expToLevelUp,
-    attack,
-    defense,
-    maxHp,
-    agility,
+    attack: playerAttack,
+    defense: playerDefense,
+    maxHp: playerMaxHp,
+    agility: playerAgility,
   } = stats;
 
-  // Player stats as state variables
-  const [playerLevel, setPlayerLevel] = useState(level);
-  const [playerExp, setPlayerExp] = useState(currentExp);
-  const [playerExpToLevelUp, setPlayerExpToLevelUp] = useState(expToLevelUp);
-  const [playerAttack, setPlayerAttack] = useState(attack);
-  const [playerDefense, setPlayerDefense] = useState(defense);
-  const [playerMaxHp, setPlayerMaxHp] = useState(maxHp);
-  const [playerAgility, setPlayerAgility] = useState(agility);
+  // Player HP as state
   const [playerHP, setPlayerHP] = useState(playerMaxHp);
+
+  // Define minimum and maximum sizes for the player's image
+  const playerMinSize = 25; // Smaller size at level 1
+  const playerMaxSize = 150; // Maximum size at higher levels
+  const playerMaxLevel = 50; // Level at which the size caps
+
+  // Calculate player image size based on level
+  const playerImageSize = useMemo(() => {
+    const sizeIncrement =
+      (playerMaxSize - playerMinSize) / (playerMaxLevel - 1);
+    const size = playerMinSize + sizeIncrement * (playerLevel - 1);
+    return Math.min(size, playerMaxSize); // Ensure size doesn't exceed maxSize
+  }, [playerLevel]);
 
   // Game state variables
   const [currentTurn, setCurrentTurn] = useState('Player');
@@ -71,9 +83,6 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
   const playerAttackImage = useRef(new Image());
   playerAttackImage.current.src = '/sprites3/7.png';
 
-  const enemyImage = useRef(new Image());
-  const enemyAttackImage = useRef(new Image());
-
   // Define an array of enemy types with their stats
   const enemies = [
     {
@@ -84,26 +93,35 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
       defense: 5,
       maxHp: 80,
       agility: 10,
+      level: 1,
     },
     {
       name: 'Pig',
-      image: '/sprites2/mush.png',
-      attackImage: '/sprites2/mushatk.png',
+      image: '/pigs/1.png',
+      attackImage: '/pigs/0.png',
       attack: 20,
       defense: 8,
       maxHp: 100,
       agility: 15,
+      level: 5,
     },
     // Add more enemies as needed
   ];
 
   // Randomly select an enemy at the beginning
-  const randomEnemyIndex = Math.floor(Math.random() * enemies.length);
-  const selectedEnemy = enemies[randomEnemyIndex];
+  const [selectedEnemy] = useState(() => {
+    const randomEnemyIndex = Math.floor(Math.random() * enemies.length);
+    return enemies[randomEnemyIndex];
+  });
 
   // Enemy images
-  enemyImage.current.src = selectedEnemy.image;
-  enemyAttackImage.current.src = selectedEnemy.attackImage;
+  const enemyImage = useRef(new Image());
+  const enemyAttackImage = useRef(new Image());
+
+  useEffect(() => {
+    enemyImage.current.src = selectedEnemy.image;
+    enemyAttackImage.current.src = selectedEnemy.attackImage;
+  }, [selectedEnemy]);
 
   // Enemy stats as state
   const [enemyStats] = useState({
@@ -111,12 +129,26 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
     defense: selectedEnemy.defense,
     maxHp: selectedEnemy.maxHp,
     agility: selectedEnemy.agility,
+    level: selectedEnemy.level,
   });
 
   // Initialize enemy HP
   useEffect(() => {
     setEnemyHP(enemyStats.maxHp);
   }, [enemyStats.maxHp]);
+
+  // Define minimum and maximum sizes for the enemy's image
+  const enemyMinSize = 100; // Smaller size at low levels
+  const enemyMaxSize = 500; // Maximum size at higher levels
+  const enemyMaxLevel = 50; // Level at which the size caps
+
+  // Calculate enemy image size based on level
+  const enemyImageSize = useMemo(() => {
+    const sizeIncrement =
+      (enemyMaxSize - enemyMinSize) / (enemyMaxLevel - 1);
+    const size = enemyMinSize + sizeIncrement * (enemyStats.level - 1);
+    return Math.min(size, enemyMaxSize); // Ensure size doesn't exceed maxSize
+  }, [enemyStats.level]);
 
   // Drawing function for CanvasRenderer
   const draw = (ctx) => {
@@ -126,30 +158,27 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
     // Draw background
     ctx.drawImage(background.current, 0, 0, canvasWidth, canvasHeight);
 
-    // Define sizes
-    const playerWidth = 150;
-    const playerHeight = 150;
-    const enemyWidth = 150;
-    const enemyHeight = 150;
+    // Use calculated sizes instead of fixed values
+    const playerWidth = playerImageSize;
+    const playerHeight = playerImageSize;
+    const enemyWidth = enemyImageSize;
+    const enemyHeight = enemyImageSize;
 
     const radius = 50; // Radius of circular motion
 
     // Calculate player position
     let playerX, playerY;
     if (currentTurn === 'Player') {
-      playerX =
-        300 +
-        radius * Math.cos(anglePlayerRef.current) -
-        playerWidth / 2;
-      playerY =
-        canvasHeight -
-        350 +
-        radius * Math.sin(anglePlayerRef.current) -
-        playerHeight / 2;
+      playerX = 300 + radius * Math.cos(anglePlayerRef.current);
+      playerY = canvasHeight - 350 + radius * Math.sin(anglePlayerRef.current);
     } else {
-      playerX = 300 - playerWidth / 2;
-      playerY = canvasHeight - 350 - playerHeight / 2;
+      playerX = 300;
+      playerY = canvasHeight - 350;
     }
+
+    // Adjust position to center the image
+    playerX -= playerWidth / 2;
+    playerY -= playerHeight / 2;
 
     // Calculate enemy position
     let enemyX, enemyY;
@@ -157,14 +186,17 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
       enemyX =
         canvasWidth -
         400 +
-        radius * Math.cos(angleEnemyRef.current) -
-        enemyWidth / 2;
+        radius * Math.cos(angleEnemyRef.current);
       enemyY =
-        220 + radius * Math.sin(angleEnemyRef.current) - enemyHeight / 2;
+        220 + radius * Math.sin(angleEnemyRef.current);
     } else {
-      enemyX = canvasWidth - 400 - enemyWidth / 2;
-      enemyY = 220 - enemyHeight / 2;
+      enemyX = canvasWidth - 400;
+      enemyY = 220;
     }
+
+    // Adjust position to center the image
+    enemyX -= enemyWidth / 2;
+    enemyY -= enemyHeight / 2;
 
     // Draw player
     if (playerState === 'attacking') {
@@ -217,7 +249,7 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
     ctx.textAlign = 'left';
     ctx.fillText(`Level: ${playerLevel}`, 20, canvasHeight - 180);
     ctx.fillText(
-      `EXP: ${playerExp} / ${playerExpToLevelUp}`,
+      `EXP: ${currentExp} / ${expToLevelUp}`,
       20,
       canvasHeight - 150
     );
@@ -245,15 +277,11 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
     const maxAngle = 2 * Math.PI;
 
     if (currentTurn === 'Player') {
-      anglePlayerRef.current =
-        (anglePlayerRef.current + 0.002) % maxAngle;
-      angleEnemyRef.current =
-        (angleEnemyRef.current + 0.005) % maxAngle;
+      anglePlayerRef.current = (anglePlayerRef.current + 0.002) % maxAngle;
+      angleEnemyRef.current = (angleEnemyRef.current + 0.005) % maxAngle;
     } else {
-      anglePlayerRef.current =
-        (anglePlayerRef.current + 0.005) % maxAngle;
-      angleEnemyRef.current =
-        (angleEnemyRef.current + 0.002) % maxAngle;
+      anglePlayerRef.current = (anglePlayerRef.current + 0.005) % maxAngle;
+      angleEnemyRef.current = (angleEnemyRef.current + 0.002) % maxAngle;
     }
   };
 
@@ -331,10 +359,7 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
             return prevHP; // No damage taken
           } else {
             // Enemy hits
-            const damage = Math.max(
-              0,
-              enemyStats.attack - playerDefense
-            );
+            const damage = Math.max(0, enemyStats.attack - playerDefense);
             const newHP = Math.max(prevHP - damage, 0);
             if (newHP < prevHP) {
               playDamageSound();
@@ -366,15 +391,15 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
   // Handle enemy defeat
   const handleEnemyDefeat = useCallback(() => {
     const expGain = 50; // Experience points for defeating the enemy
-    const newExp = playerExp + expGain;
+    const newExp = currentExp + expGain;
 
     let updatedStats = { ...stats }; // Make a copy of stats
 
     // Check for level up
-    if (newExp >= playerExpToLevelUp) {
-      const excessExp = newExp - playerExpToLevelUp;
+    if (newExp >= expToLevelUp) {
+      const excessExp = newExp - expToLevelUp;
       const newLevel = playerLevel + 1;
-      const newExpToLevelUp = playerExpToLevelUp + 100;
+      const newExpToLevelUp = expToLevelUp + 100;
 
       // Update stats on level up
       updatedStats = {
@@ -388,17 +413,10 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
         agility: playerAgility + 2,
       };
 
-      setPlayerLevel(newLevel);
-      setPlayerExp(excessExp);
-      setPlayerExpToLevelUp(newExpToLevelUp);
-      setPlayerAttack(updatedStats.attack);
-      setPlayerDefense(updatedStats.defense);
-      setPlayerMaxHp(updatedStats.maxHp);
-      setPlayerAgility(updatedStats.agility);
+      // Update state
       setPlayerHP(updatedStats.maxHp); // Restore HP
     } else {
       updatedStats.currentExp = newExp;
-      setPlayerExp(newExp);
     }
 
     // Update cookies and show victory modal
@@ -411,8 +429,8 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
       onBackToLobby();
     }, 5000);
   }, [
-    playerExp,
-    playerExpToLevelUp,
+    currentExp,
+    expToLevelUp,
     playerLevel,
     playerAttack,
     playerDefense,
@@ -429,7 +447,7 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
       enemyDefeatHandled.current = true;
       handleEnemyDefeat();
     }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enemyHP]);
 
   // Handle player defeat
@@ -507,7 +525,11 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
 
   return (
     <div
-      style={{ position: 'relative', width: canvasWidth, height: canvasHeight }}
+      style={{
+        position: 'relative',
+        width: canvasWidth,
+        height: canvasHeight,
+      }}
     >
       <CanvasRenderer
         draw={draw}
@@ -616,7 +638,9 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
           }}
         >
           <h1 style={{ fontSize: 48, marginBottom: 20 }}>Defeated!</h1>
-          <p style={{ fontSize: 24 }}>You have been defeated by the enemy.</p>
+          <p style={{ fontSize: 24 }}>
+            You have been defeated by the enemy.
+          </p>
           <button
             onClick={() => {
               playClickSound();
