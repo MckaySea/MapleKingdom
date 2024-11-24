@@ -502,6 +502,7 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
     if (playerHP <= 0) {
       handlePlayerDefeat();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playerHP]);
 
   return (
