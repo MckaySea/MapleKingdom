@@ -1,5 +1,5 @@
 // BattleScene.js
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import CanvasRenderer from './canvasRenderer';
 import SkillButton from './skillButton';
 import HPBar from './hpBar';
@@ -325,18 +325,6 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
   ]);
 
   // Watch for enemyHP changes to handle enemy defeat
-  useEffect(() => {
-    if (enemyHP <= 0) {
-      handleEnemyDefeat();
-    }
-  }, [enemyHP]);
-
-  // Watch for playerHP changes to handle player defeat
-  useEffect(() => {
-    if (playerHP <= 0) {
-      handlePlayerDefeat();
-    }
-  }, [playerHP]);
 
   // Handle skill actions
   const handleSkillAction = (skillName) => {
@@ -372,30 +360,30 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
   };
 
   // Handle enemy defeat
-  const handleEnemyDefeat = () => {
-    // Award experience points
-    const expGain = 50; // Amount of EXP gained from defeating the enemy
+  const handleEnemyDefeat = useCallback(() => {
+    const expGain = 50; // Experience points for defeating the enemy
     const newExp = playerExp + expGain;
 
     let updatedStats = { ...stats }; // Make a copy of stats
 
     // Check for level up
     if (newExp >= playerExpToLevelUp) {
-      // Level up
       const excessExp = newExp - playerExpToLevelUp;
       const newLevel = playerLevel + 1;
-      const newExpToLevelUp = playerExpToLevelUp + 100; // Increase exp needed for next level
+      const newExpToLevelUp = playerExpToLevelUp + 100;
 
-      // Increase stats on level up
-      updatedStats.level = newLevel;
-      updatedStats.currentExp = excessExp;
-      updatedStats.expToLevelUp = newExpToLevelUp;
-      updatedStats.attack += 5;
-      updatedStats.defense += 5;
-      updatedStats.maxHp += 20;
-      updatedStats.agility += 2; // Increase agility
+      // Update stats on level up
+      updatedStats = {
+        ...updatedStats,
+        level: newLevel,
+        currentExp: excessExp,
+        expToLevelUp: newExpToLevelUp,
+        attack: playerAttack + 5,
+        defense: playerDefense + 5,
+        maxHp: playerMaxHp + 20,
+        agility: playerAgility + 2,
+      };
 
-      // Update state variables
       setPlayerLevel(newLevel);
       setPlayerExp(excessExp);
       setPlayerExpToLevelUp(newExpToLevelUp);
@@ -403,33 +391,40 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
       setPlayerDefense(updatedStats.defense);
       setPlayerMaxHp(updatedStats.maxHp);
       setPlayerAgility(updatedStats.agility);
-      setPlayerHP(updatedStats.maxHp); // Restore HP to new max
+      setPlayerHP(updatedStats.maxHp); // Restore HP
     } else {
       updatedStats.currentExp = newExp;
       setPlayerExp(newExp);
     }
 
-    // Update the cookies directly
+    // Update cookies and show victory modal
     Cookies.set('stats', JSON.stringify(updatedStats), { expires: 7 });
-
-    // Show victory modal
     setShowVictoryModal(true);
     playVictorySound();
 
-    // Return to lobby after a delay
-    setTimeout(() => {
-      onBackToLobby();
-    }, 5000); // Adjust delay as needed
-  };
-
-  // Handle player defeat
-  const handlePlayerDefeat = () => {
-    setShowDefeatModal(true);
-    // playDefeatSound(); // Uncomment if you have a defeat sound
+    // Return to lobby after delay
     setTimeout(() => {
       onBackToLobby();
     }, 5000);
-  };
+  }, [
+    playerExp,
+    playerExpToLevelUp,
+    playerLevel,
+    playerAttack,
+    playerDefense,
+    playerMaxHp,
+    playerAgility,
+    stats,
+    playVictorySound,
+    onBackToLobby,
+  ]);
+  // Handle player defeat
+  const handlePlayerDefeat = useCallback(() => {
+    setShowDefeatModal(true);
+    setTimeout(() => {
+      onBackToLobby();
+    }, 5000);
+  }, [onBackToLobby]);
 
   // Mouse event handlers for the canvas
   const handleMouseMove = (e) => {
@@ -491,6 +486,18 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
       );
     }
   };
+  useEffect(() => {
+    if (enemyHP <= 0) {
+      handleEnemyDefeat();
+    }
+  }, [enemyHP, handleEnemyDefeat]);
+
+  // Watch for playerHP changes to handle player defeat
+  useEffect(() => {
+    if (playerHP <= 0) {
+      handlePlayerDefeat();
+    }
+  }, [playerHP, handlePlayerDefeat]);
 
   return (
     <div
