@@ -562,14 +562,14 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
         hp={playerHP}
         maxHP={playerMaxHp}
         x={20}
-        y={canvasHeight - 125}
+        y={canvasHeight - 130}
         width={80}
       />
       <HPBar
         hp={enemyHP}
         maxHP={enemyStats.maxHp}
         x={canvasWidth - 100}
-        y={105}
+        y={canvasHeight - 140}
         width={80}
       />
       <Portrait
@@ -581,7 +581,7 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
       <Portrait
         imageSrc={selectedEnemy.image}
         x={canvasWidth - 100}
-        y={20}
+        y={canvasHeight - 100}
         size={80}
       />
 
