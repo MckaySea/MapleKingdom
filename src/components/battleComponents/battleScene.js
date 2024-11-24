@@ -42,6 +42,8 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
   const anglePlayerRef = useRef(0);
   const angleEnemyRef = useRef(0);
   const hoveredButtonRef = useRef(null);
+  const isClicked = useRef(0); // Ref to track if a button has been clicked
+  const enemyDefeatHandled = useRef(false); // Ref to track if enemy defeat has been handled
 
   // Skills array
   const skills = [
@@ -271,6 +273,42 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
     );
   };
 
+  // Handle skill actions
+  const handleSkillAction = (skillName) => {
+    if (isClicked.current >= 1) return; // Prevent further clicks
+    isClicked.current += 1; // Mark as clicked
+
+    playClickSound();
+
+    if (skillName === 'Attack') {
+      setPlayerState('attacking');
+      playAttackSound();
+
+      setEnemyHP((prevHP) => {
+        const damage = Math.max(0, playerAttack - enemyStats.defense);
+        const newHP = Math.max(prevHP - damage, 0);
+        if (newHP < prevHP) {
+          playDamageSound();
+        }
+        return newHP;
+      });
+
+      setTimeout(() => {
+        setPlayerState('normal');
+        if (enemyHP > 0) {
+          setCurrentTurn('Enemy');
+        }
+      }, 500);
+    } else if (skillName === 'Heal') {
+      setPlayerHP((prevHP) => Math.min(prevHP + 15, playerMaxHp));
+      setTimeout(() => setCurrentTurn('Enemy'), 500);
+    } else if (skillName === 'Defend') {
+      // Implement defend functionality if needed
+      setTimeout(() => setCurrentTurn('Enemy'), 500);
+    }
+    // Add more skill effects as needed
+  };
+
   // Enemy action effect
   useEffect(() => {
     if (currentTurn === 'Enemy' && enemyHP > 0) {
@@ -308,6 +346,7 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
         setTimeout(() => {
           setEnemyState('normal');
           setCurrentTurn('Player');
+          isClicked.current = 0; // Reset for the next player turn
         }, 500);
       }, 1000);
 
@@ -323,41 +362,6 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
     playerDefense,
     enemyStats,
   ]);
-
-  // Watch for enemyHP changes to handle enemy defeat
-
-  // Handle skill actions
-  const handleSkillAction = (skillName) => {
-    playClickSound();
-
-    if (skillName === 'Attack') {
-      setPlayerState('attacking');
-      playAttackSound();
-
-      setEnemyHP((prevHP) => {
-        const damage = Math.max(
-          0,
-          playerAttack - enemyStats.defense
-        ); // Use player's attack and enemy's defense
-        const newHP = Math.max(prevHP - damage, 0);
-        if (newHP < prevHP) {
-          playDamageSound();
-        }
-        return newHP;
-      });
-
-      setTimeout(() => {
-        setPlayerState('normal');
-        if (enemyHP > 0) {
-          setCurrentTurn('Enemy');
-        }
-      }, 500);
-    } else if (skillName === 'Heal') {
-      setPlayerHP((prevHP) => Math.min(prevHP + 15, playerMaxHp));
-      setTimeout(() => setCurrentTurn('Enemy'), 500);
-    }
-    // Add more skill effects as needed
-  };
 
   // Handle enemy defeat
   const handleEnemyDefeat = useCallback(() => {
@@ -418,6 +422,16 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
     playVictorySound,
     onBackToLobby,
   ]);
+
+  // Watch for enemyHP changes to handle enemy defeat
+  useEffect(() => {
+    if (enemyHP <= 0 && !enemyDefeatHandled.current) {
+      enemyDefeatHandled.current = true;
+      handleEnemyDefeat();
+    }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enemyHP]);
+
   // Handle player defeat
   const handlePlayerDefeat = useCallback(() => {
     setShowDefeatModal(true);
@@ -433,11 +447,8 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
 
-  
-
     // Check if the mouse is over the Back to Lobby button
     if (mouseX >= 10 && mouseX <= 160 && mouseY >= 10 && mouseY <= 50) {
-     
       if (hoveredButtonRef.current !== 'backButton') {
         hoveredButtonRef.current = 'backButton';
         playHoverSound();
@@ -450,7 +461,6 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
       mouseY >= 60 &&
       mouseY <= 100
     ) {
-      
       if (hoveredButtonRef.current !== 'turnButton') {
         hoveredButtonRef.current = 'turnButton';
         playHoverSound();
@@ -486,20 +496,14 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
       );
     }
   };
-  useEffect(() => {
-    if (enemyHP <= 0) {
-      handleEnemyDefeat();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enemyHP]);
-  
+
+  // Watch for playerHP changes to handle player defeat
   useEffect(() => {
     if (playerHP <= 0) {
       handlePlayerDefeat();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playerHP]);
-  
+
   return (
     <div
       style={{ position: 'relative', width: canvasWidth, height: canvasHeight }}
@@ -518,7 +522,7 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
             <SkillButton
               key={skill.name}
               skill={skill}
-              onClick={handleSkillAction}
+              onClick={() => handleSkillAction(skill.name)}
             />
           ))}
       </div>
