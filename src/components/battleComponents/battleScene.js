@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 // BattleScene.js
 import React, {
   useEffect,
