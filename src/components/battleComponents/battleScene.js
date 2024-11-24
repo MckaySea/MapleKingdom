@@ -61,7 +61,7 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
 
   // Load images
   const background = useRef(new Image());
-  background.current.src = '/maplebattle.jpg';
+  background.current.src = '/mapplebattle.jpg';
 
   const playerImage = useRef(new Image());
   playerImage.current.src = selectedPng;
@@ -284,7 +284,7 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
             playerAgility / (playerAgility + enemyStats.agility);
 
           // Generate a random number between 0 and 1
-          const rand = Math.random(12/playerAgility);
+          const rand = Math.random();
 
           if (rand < missChance) {
             // Enemy missed
@@ -329,14 +329,14 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
     if (enemyHP <= 0) {
       handleEnemyDefeat();
     }
-  }, [enemyHP]);
+  }, [enemyHP, handleEnemyDefeat]);
 
   // Watch for playerHP changes to handle player defeat
   useEffect(() => {
     if (playerHP <= 0) {
       handlePlayerDefeat();
     }
-  }, [playerHP]);
+  }, [playerHP, handlePlayerDefeat]);
 
   // Handle skill actions
   const handleSkillAction = (skillName) => {

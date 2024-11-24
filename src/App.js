@@ -67,10 +67,6 @@ function App() {
     Cookies.set('stats', JSON.stringify(newStats), { expires: 7 });
   };
 
-  const updateCursor = (newCursorPng) => {
-    setCursorPng(newCursorPng);
-    Cookies.set('cursorPng', newCursorPng, { expires: 7 });
-  };
 
   return (
     <div
