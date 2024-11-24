@@ -11,6 +11,7 @@ function App() {
   const [selectedPng, setSelectedPng] = useState(null);
   const [stats, setStats] = useState(null);
   const [inventory, setInventory] = useState([]); // Initialize inventory
+  const [lastLoot, setLastLoot] = useState([]); // State to track last loot (New)
   const [cursorPng, setCursorPng] = useState('/hand.png'); // Default cursor
   const [loading, setLoading] = useState(false); // Loading state
 
@@ -84,19 +85,19 @@ function App() {
     Cookies.set('stats', JSON.stringify(newStats), { expires: 7 });
   };
 
-  // Add an item to the inventory
-  const addItemToInventory = (itemId) => {
+  // Add an item to the inventory (Existing)
+  const addItemToInventory = (item) => { // Modified to accept entire item object
     setInventory((prevInventory) => {
-      const updatedInventory = [...prevInventory, itemId];
+      const updatedInventory = [...prevInventory, item];
       Cookies.set('inventory', JSON.stringify(updatedInventory), { expires: 7 });
       return updatedInventory;
     });
   };
 
-  // Remove an item from the inventory
+  // Remove an item from the inventory (Optional)
   // const removeItemFromInventory = (itemId) => {
   //   setInventory((prevInventory) => {
-  //     const index = prevInventory.indexOf(itemId);
+  //     const index = prevInventory.findIndex(item => item.id === itemId);
   //     if (index > -1) {
   //       const updatedInventory = [...prevInventory];
   //       updatedInventory.splice(index, 1);
@@ -127,6 +128,8 @@ function App() {
           itemsList={itemsList} // Pass items list to Lobby
           onEnterBattle={handleStartBattle}
           addItemToInventory={addItemToInventory} // Pass add item function
+          lastLoot={lastLoot} // Pass lastLoot to Lobby (New)
+          setLastLoot={setLastLoot} // Pass setLastLoot to Lobby (New)
         />
       ) : currentScene === 'battle' ? (
         <BattleScene
@@ -134,6 +137,8 @@ function App() {
           stats={stats}
           onBackToLobby={handleBackToLobby}
           updateStats={updateStats}
+          addItemToInventory={addItemToInventory} // Pass addItemToInventory to BattleScene (New)
+          setLastLoot={setLastLoot} // Pass setLastLoot to BattleScene (New)
         />
       ) : null}
     </div>

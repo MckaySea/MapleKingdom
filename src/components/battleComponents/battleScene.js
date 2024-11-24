@@ -13,7 +13,7 @@ import Portrait from './portrait';
 import useAudio from './useAudio';
 import Cookies from 'js-cookie';
 
-function BattleScene({ selectedPng, stats, onBackToLobby }) {
+function BattleScene({ selectedPng, stats, onBackToLobby, addItemToInventory, setLastLoot }) { // Added props
   const canvasWidth = window.innerWidth;
   const canvasHeight = window.innerHeight;
 
@@ -32,8 +32,8 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
   const [playerHP, setPlayerHP] = useState(playerMaxHp);
 
   // Define minimum and maximum sizes for the player's image
-  const playerMinSize = 25; // Smaller size at level 1
-  const playerMaxSize = 150; // Maximum size at higher levels
+  const playerMinSize = 50; // Smaller size at level 1
+  const playerMaxSize = 200; // Maximum size at higher levels
   const playerMaxLevel = 50; // Level at which the size caps
 
   // Calculate player image size based on level
@@ -84,7 +84,17 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
   const playerAttackImage = useRef(new Image());
   playerAttackImage.current.src = '/sprites3/7.png';
 
-  // Define an array of enemy types with their stats
+  // Define possible loot items (New)
+  const lootItems = [
+    { name: 'Health Potion', icon: '/items/hppot.png' },
+    { name: 'Mana Potion', icon: '/items/manapot.png' },
+    { name: 'Sword', icon: '/items/swordmaple.png' },
+    { name: 'Shield', icon: '/items/shield.png' },
+    { name: 'Gold Coin', icon: '/items/goldcoin.png' },
+    // Add more items as needed
+  ];
+
+  // Define an array of enemy types with their stats and loot tables
   const enemies = useMemo(
     () => [
       {
@@ -96,6 +106,10 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
         maxHp: 80,
         agility: 10,
         level: 1,
+        lootTable: [
+          { item: 'Health Potion', dropRate: 0.5 }, // 50% chance
+          { item: 'Gold Coin', dropRate: 0.8 },     // 80% chance
+        ],
       },
       {
         name: 'Pig',
@@ -106,6 +120,11 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
         maxHp: 100,
         agility: 15,
         level: 5,
+        lootTable: [
+          { item: 'Health Potion', dropRate: 0.6 }, // 60% chance
+          { item: 'Mana Potion', dropRate: 0.3 },   // 30% chance
+          { item: 'Gold Coin', dropRate: 0.9 },     // 90% chance
+        ],
       },
       // Add more enemies as needed
     ],
@@ -143,7 +162,7 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
   }, [enemyStats.maxHp]);
 
   // Define minimum and maximum sizes for the enemy's image
-  const enemyMinSize = 100; // Smaller size at low levels
+  const enemyMinSize = 75; // Smaller size at low levels
   const enemyMaxSize = 500; // Maximum size at higher levels
   const enemyMaxLevel = 50; // Level at which the size caps
 
@@ -309,6 +328,32 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
     );
   };
 
+  // Function to handle loot drops (Modified to use App.js functions)
+  const handleLootDrops = (lootTable) => {
+    const obtainedLoot = [];
+
+    lootTable.forEach((loot) => {
+      const rand = Math.random();
+      if (rand <= loot.dropRate) {
+        // Find the item details from lootItems
+        const item = lootItems.find((i) => i.name === loot.item);
+        if (item) {
+          obtainedLoot.push(item);
+          addItemToInventory(item); // Add to inventory via App.js function
+        }
+      }
+    });
+
+    if (obtainedLoot.length > 0) {
+      // Set lastLoot via App.js function
+      setLastLoot(obtainedLoot);
+    }
+  };
+
+  // Additional state for loot modal (Removed from BattleScene)
+  // const [showLootModal, setShowLootModal] = useState(false);
+  // const [lootedItems, setLootedItems] = useState([]); // Items obtained in the current drop
+
   // Handle skill actions
   const handleSkillAction = (skillName) => {
     if (isClicked.current >= 1) return; // Prevent further clicks
@@ -428,9 +473,13 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
     }
 
     // Update cookies and show victory modal
+    
     Cookies.set('stats', JSON.stringify(updatedStats), { expires: 7 });
     setShowVictoryModal(true);
     playVictorySound();
+
+    // Handle loot drops
+    handleLootDrops(selectedEnemy.lootTable);
 
     // Return to lobby after delay
     setTimeout(() => {
@@ -447,6 +496,8 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
     stats,
     playVictorySound,
     onBackToLobby,
+    selectedEnemy,
+    handleLootDrops,
   ]);
 
   // Watch for enemyHP changes to handle enemy defeat
@@ -669,6 +720,8 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
           </button>
         </div>
       )}
+
+      {/* Loot Modal Removed from BattleScene */}
     </div>
   );
 }
