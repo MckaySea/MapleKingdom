@@ -61,7 +61,7 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
 
   // Load images
   const background = useRef(new Image());
-  background.current.src = '/mapplebattle.jpg';
+  background.current.src = '/maplebattle.jpg';
 
   const playerImage = useRef(new Image());
   playerImage.current.src = selectedPng;
@@ -490,14 +490,14 @@ function BattleScene({ selectedPng, stats, onBackToLobby }) {
     if (enemyHP <= 0) {
       handleEnemyDefeat();
     }
-  }, [enemyHP, handleEnemyDefeat]);
+  }, [enemyHP]);
 
   // Watch for playerHP changes to handle player defeat
   useEffect(() => {
     if (playerHP <= 0) {
       handlePlayerDefeat();
     }
-  }, [playerHP, handlePlayerDefeat]);
+  }, [playerHP]);
 
   return (
     <div
