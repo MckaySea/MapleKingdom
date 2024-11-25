@@ -6,7 +6,7 @@ import CharacterCreation from './components/charCreation';
 import BattleScene from './components/battleComponents/battleScene';
 import Lobby from './components/lobby';
 import itemsList from './components/itemslist';
-import characters from './components/characters'; // Import characters if needed
+
 
 function App() {
   const [currentScene, setCurrentScene] = useState('characterCreation');
@@ -92,10 +92,7 @@ function App() {
   };
 
   // Update player stats
-  const updateStats = (newStats) => {
-    setStats(newStats);
-    Cookies.set('stats', JSON.stringify(newStats), { expires: 7 });
-  };
+
 
   // Add an item to the inventory
   const addItemToInventory = (item) => { // Accept entire item object
