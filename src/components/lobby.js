@@ -79,21 +79,21 @@ function Lobby({
   // Background and character images
   const background = useRef(new Image());
   const characterImage = useRef(new Image());
-  const characterAttackImage = useRef(new Image()); // Ref for attack image
+  // const characterAttackImage = useRef(new Image()); // Ref for attack image
   const frameCount = useRef(0);
 
   background.current.src = '/msbg.jpg'; // Retro-style lobby background image
   characterImage.current.src = selectedPng; // Character defense PNG
-  characterAttackImage.current.src = selectedAtkPng; // Character attack PNG
+  // characterAttackImage.current.src = selectedAtkPng; // Character attack PNG
 
   // Handle image load errors
   characterImage.current.onerror = () => {
     characterImage.current.src = selectedPng; // Fallback image
   };
 
-  characterAttackImage.current.onerror = () => {
-    characterAttackImage.current.src = selectedAtkPng; // Fallback image
-  };
+  // characterAttackImage.current.onerror = () => {
+  //   characterAttackImage.current.src = selectedAtkPng; // Fallback image
+  // };
 
   // Button hover state
   const hoveredButtonRef = useRef(null);
@@ -128,13 +128,13 @@ function Lobby({
     const attackX = characterX + playerImageSize - attackImageSize / 2;
     const attackY = characterY - attackImageSize / 2;
 
-    ctx.drawImage(
-      characterAttackImage.current,
-      attackX,
-      attackY,
-      attackImageSize,
-      attackImageSize
-    );
+    // ctx.drawImage(
+    //   characterAttackImage.current,
+    //   attackX,
+    //   attackY,
+    //   attackImageSize,
+    //   attackImageSize
+    // );
 
     // Draw buttons
     drawCanvasButton(ctx, {
