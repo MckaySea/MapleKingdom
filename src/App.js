@@ -1,29 +1,34 @@
 // src/App.js
+
 import React, { useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
 import CharacterCreation from './components/charCreation';
 import BattleScene from './components/battleComponents/battleScene';
 import Lobby from './components/lobby';
 import itemsList from './components/itemslist';
+import characters from './components/characters'; // Import characters if needed
 
 function App() {
   const [currentScene, setCurrentScene] = useState('characterCreation');
-  const [selectedPng, setSelectedPng] = useState(null);
+  const [selectedPng, setSelectedPng] = useState(null);        // Defense Image
+  const [selectedAtkPng, setSelectedAtkPng] = useState(null);  // Attack Image
   const [stats, setStats] = useState(null);
   const [inventory, setInventory] = useState([]); // Initialize inventory
-  const [lastLoot, setLastLoot] = useState([]); // State to track last loot (New)
+  const [lastLoot, setLastLoot] = useState([]); // State to track last loot
   const [cursorPng, setCursorPng] = useState('/hand.png'); // Default cursor
   const [loading, setLoading] = useState(false); // Loading state
 
   // Load saved data from cookies on mount
   useEffect(() => {
     const savedPng = Cookies.get('selectedPng');
+    const savedAtkPng = Cookies.get('selectedAtkPng'); // Retrieve attack PNG
     const savedStats = Cookies.get('stats');
     const savedCursor = Cookies.get('cursorPng');
     const savedInventory = Cookies.get('inventory');
 
-    if (savedPng && savedStats) {
+    if (savedPng && savedAtkPng && savedStats) { // Ensure all are present
       setSelectedPng(savedPng);
+      setSelectedAtkPng(savedAtkPng);
       setStats(JSON.parse(savedStats));
       setCurrentScene('lobby'); // Navigate to lobby if character exists
     }
@@ -38,10 +43,12 @@ function App() {
   }, []);
 
   // Handle character creation
-  const handleCharacterCreation = (url, generatedStats) => {
-    setSelectedPng(url);
+  const handleCharacterCreation = (defenseUrl, attackUrl, generatedStats) => {
+    setSelectedPng(defenseUrl);
+    setSelectedAtkPng(attackUrl);
     setStats(generatedStats);
-    Cookies.set('selectedPng', url, { expires: 7 });
+    Cookies.set('selectedPng', defenseUrl, { expires: 7 });
+    Cookies.set('selectedAtkPng', attackUrl, { expires: 7 });
     Cookies.set('stats', JSON.stringify(generatedStats), { expires: 7 });
     setCurrentScene('lobby');
   };
@@ -56,6 +63,7 @@ function App() {
     setLoading(true); // Start loading
     const savedStats = Cookies.get('stats');
     const savedPng = Cookies.get('selectedPng');
+    const savedAtkPng = Cookies.get('selectedAtkPng'); // Retrieve attack PNG
     const savedCursor = Cookies.get('cursorPng');
     const savedInventory = Cookies.get('inventory');
 
@@ -65,6 +73,10 @@ function App() {
 
     if (savedPng) {
       setSelectedPng(savedPng); // Update selected PNG from cookies
+    }
+
+    if (savedAtkPng) {
+      setSelectedAtkPng(savedAtkPng); // Update attack PNG from cookies
     }
 
     if (savedCursor) {
@@ -85,8 +97,8 @@ function App() {
     Cookies.set('stats', JSON.stringify(newStats), { expires: 7 });
   };
 
-  // Add an item to the inventory (Existing)
-  const addItemToInventory = (item) => { // Modified to accept entire item object
+  // Add an item to the inventory
+  const addItemToInventory = (item) => { // Accept entire item object
     setInventory((prevInventory) => {
       const updatedInventory = [...prevInventory, item];
       Cookies.set('inventory', JSON.stringify(updatedInventory), { expires: 7 });
@@ -124,21 +136,22 @@ function App() {
         <Lobby
           stats={stats}
           selectedPng={selectedPng}
+          selectedAtkPng={selectedAtkPng} // Pass attack PNG to Lobby
           inventory={inventory}
           itemsList={itemsList} // Pass items list to Lobby
           onEnterBattle={handleStartBattle}
           addItemToInventory={addItemToInventory} // Pass add item function
-          lastLoot={lastLoot} // Pass lastLoot to Lobby (New)
-          setLastLoot={setLastLoot} // Pass setLastLoot to Lobby (New)
+          lastLoot={lastLoot} // Pass lastLoot to Lobby
+          setLastLoot={setLastLoot} // Pass setLastLoot to Lobby
         />
       ) : currentScene === 'battle' ? (
         <BattleScene
           selectedPng={selectedPng}
+          selectedAtkPng={selectedAtkPng} // Pass attack PNG to BattleScene
           stats={stats}
           onBackToLobby={handleBackToLobby}
-          updateStats={updateStats}
-          addItemToInventory={addItemToInventory} // Pass addItemToInventory to BattleScene (New)
-          setLastLoot={setLastLoot} // Pass setLastLoot to BattleScene (New)
+          addItemToInventory={addItemToInventory} // Pass addItemToInventory to BattleScene
+          setLastLoot={setLastLoot} // Pass setLastLoot to BattleScene
         />
       ) : null}
     </div>

@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-// BattleScene.js
+// src/components/battleComponents/battleScene.js
+
 import React, {
   useEffect,
   useRef,
@@ -13,8 +14,15 @@ import HPBar from './hpBar';
 import Portrait from './portrait';
 import useAudio from './useAudio';
 import Cookies from 'js-cookie';
-
-function BattleScene({ selectedPng, stats, onBackToLobby, addItemToInventory, setLastLoot }) { // Added props
+import itemsList from '../itemslist';
+function BattleScene({
+  selectedPng,
+  selectedAtkPng, // Added prop for attack PNG
+  stats,
+  onBackToLobby,
+  addItemToInventory,
+  setLastLoot,
+}) {
   const canvasWidth = window.innerWidth;
   const canvasHeight = window.innerHeight;
 
@@ -33,7 +41,7 @@ function BattleScene({ selectedPng, stats, onBackToLobby, addItemToInventory, se
   const [playerHP, setPlayerHP] = useState(playerMaxHp);
 
   // Define minimum and maximum sizes for the player's image
-  const playerMinSize = 50; // Smaller size at level 1
+  const playerMinSize = 70; // Smaller size at level 1
   const playerMaxSize = 200; // Maximum size at higher levels
   const playerMaxLevel = 50; // Level at which the size caps
 
@@ -83,17 +91,17 @@ function BattleScene({ selectedPng, stats, onBackToLobby, addItemToInventory, se
   playerImage.current.src = selectedPng;
 
   const playerAttackImage = useRef(new Image());
-  playerAttackImage.current.src = '/sprites3/7.png';
+  playerAttackImage.current.src = selectedAtkPng; // Use selectedAtkPng instead of hardcoded path
 
-  // Define possible loot items (New)
-  const lootItems = [
-    { name: 'Health Potion', icon: '/items/hppot.png' },
-    { name: 'Mana Potion', icon: '/items/manapot.png' },
-    { name: 'Sword', icon: '/items/swordmaple.png' },
-    { name: 'Shield', icon: '/items/shield.png' },
-    { name: 'Gold Coin', icon: '/items/goldcoin.png' },
-    // Add more items as needed
-  ];
+  // Handle image load errors
+  useEffect(() => {
+    playerImage.current.onerror = () => {
+      playerImage.current.src = '/defaultCharacter.png'; // Fallback image
+    };
+    playerAttackImage.current.onerror = () => {
+      playerAttackImage.current.src = '/defaultAttack.png'; // Fallback image
+    };
+  }, []);
 
   // Define an array of enemy types with their stats and loot tables
   const enemies = useMemo(
@@ -108,8 +116,8 @@ function BattleScene({ selectedPng, stats, onBackToLobby, addItemToInventory, se
         agility: 10,
         level: 1,
         lootTable: [
-          { item: 'Health Potion', dropRate: 0.4 }, // 50% chance
-          { item: 'Maple Staff', dropRate: 0.1 },     // 20% cance
+          { item: 'Health Potion', dropRate: 0.4 }, // 40% chance
+          { item: 'Maple Staff', dropRate: 0.1 },   // 10% chance
         ],
       },
       {
@@ -124,7 +132,7 @@ function BattleScene({ selectedPng, stats, onBackToLobby, addItemToInventory, se
         lootTable: [
           { item: 'Health Potion', dropRate: 0.6 }, // 60% chance
           { item: 'Mana Potion', dropRate: 0.3 },   // 30% chance
-          { item: 'Shield', dropRate: 0.1 },     // 90% chance
+          { item: 'Shield', dropRate: 0.1 },        // 10% chance
         ],
       },
       // Add more enemies as needed
@@ -146,6 +154,16 @@ function BattleScene({ selectedPng, stats, onBackToLobby, addItemToInventory, se
   useEffect(() => {
     enemyImage.current.src = selectedEnemy.image;
     enemyAttackImage.current.src = selectedEnemy.attackImage;
+  }, [selectedEnemy]);
+
+  // Handle enemy image load errors
+  useEffect(() => {
+    enemyImage.current.onerror = () => {
+      enemyImage.current.src = '/defaultEnemy.png'; // Fallback image
+    };
+    enemyAttackImage.current.onerror = () => {
+      enemyAttackImage.current.src = '/defaultEnemyAttack.png'; // Fallback image
+    };
   }, [selectedEnemy]);
 
   // Enemy stats as state
@@ -176,142 +194,160 @@ function BattleScene({ selectedPng, stats, onBackToLobby, addItemToInventory, se
   }, [enemyStats.level]);
 
   // Drawing function for CanvasRenderer
-  const draw = (ctx) => {
-    // Clear canvas
-    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+  const draw = useCallback(
+    (ctx) => {
+      // Clear canvas
+      ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-    // Draw background
-    ctx.drawImage(background.current, 0, 0, canvasWidth, canvasHeight);
+      // Draw background
+      ctx.drawImage(background.current, 0, 0, canvasWidth, canvasHeight);
 
-    // Use calculated sizes instead of fixed values
-    const playerWidth = playerImageSize;
-    const playerHeight = playerImageSize;
-    const enemyWidth = enemyImageSize;
-    const enemyHeight = enemyImageSize;
+      // Use calculated sizes instead of fixed values
+      const playerWidth = playerImageSize;
+      const playerHeight = playerImageSize;
+      const enemyWidth = enemyImageSize;
+      const enemyHeight = enemyImageSize;
 
-    const radius = 50; // Radius of circular motion
+      const radius = 50; // Radius of circular motion
 
-    // Calculate center of the canvas
-    const centerX = canvasWidth / 2;
-    const centerY = canvasHeight / 2;
+      // Calculate center of the canvas
+      const centerX = canvasWidth / 2;
+      const centerY = canvasHeight / 2;
 
-    // Define horizontal offset from the center for player and enemy
-    const horizontalOffset = 350; // Adjust this value as needed
+      // Define horizontal offset from the center for player and enemy
+      const horizontalOffset = 350; // Adjust this value as needed
 
-    // Calculate player position
-    let playerX, playerY;
-    if (currentTurn === 'Player') {
-      playerX = centerX - horizontalOffset + radius * Math.cos(anglePlayerRef.current);
-      playerY = centerY + radius * Math.sin(anglePlayerRef.current);
-    } else {
-      playerX = centerX - horizontalOffset;
-      playerY = centerY;
-    }
+      // Calculate player position
+      let playerX, playerY;
+      if (currentTurn === 'Player') {
+        playerX =
+          centerX - horizontalOffset + radius * Math.cos(anglePlayerRef.current);
+        playerY =
+          centerY + radius * Math.sin(anglePlayerRef.current);
+      } else {
+        playerX = centerX - horizontalOffset;
+        playerY = centerY;
+      }
 
-    // Adjust position to center the image
-    playerX -= playerWidth / 2;
-    playerY -= playerHeight / 2;
+      // Adjust position to center the image
+      playerX -= playerWidth / 2;
+      playerY -= playerHeight / 2;
 
-    // Calculate enemy position
-    let enemyX, enemyY;
-    if (currentTurn === 'Enemy') {
-      enemyX = centerX + horizontalOffset + radius * Math.cos(angleEnemyRef.current);
-      enemyY = centerY + radius * Math.sin(angleEnemyRef.current);
-    } else {
-      enemyX = centerX + horizontalOffset;
-      enemyY = centerY;
-    }
+      // Calculate enemy position
+      let enemyX, enemyY;
+      if (currentTurn === 'Enemy') {
+        enemyX =
+          centerX + horizontalOffset + radius * Math.cos(angleEnemyRef.current);
+        enemyY =
+          centerY + radius * Math.sin(angleEnemyRef.current);
+      } else {
+        enemyX = centerX + horizontalOffset;
+        enemyY = centerY;
+      }
 
-    // Adjust position to center the image
-    enemyX -= enemyWidth / 2;
-    enemyY -= enemyHeight / 2;
+      // Adjust position to center the image
+      enemyX -= enemyWidth / 2;
+      enemyY -= enemyHeight / 2;
 
-    // Draw player
-    if (playerState === 'attacking') {
-      ctx.drawImage(
-        playerAttackImage.current,
-        playerX,
-        playerY,
-        playerWidth,
-        playerHeight
+      // Draw player
+      if (playerState === 'attacking') {
+        ctx.drawImage(
+          playerAttackImage.current,
+          playerX,
+          playerY,
+          playerWidth,
+          playerHeight
+        );
+      } else {
+        ctx.drawImage(
+          playerImage.current,
+          playerX,
+          playerY,
+          playerWidth,
+          playerHeight
+        );
+      }
+
+      // Draw enemy
+      if (enemyState === 'attacking') {
+        ctx.drawImage(
+          enemyAttackImage.current,
+          enemyX,
+          enemyY,
+          enemyWidth,
+          enemyHeight
+        );
+      } else {
+        ctx.drawImage(
+          enemyImage.current,
+          enemyX,
+          enemyY,
+          enemyWidth,
+          enemyHeight
+        );
+      }
+
+      // Draw turn indicator
+      ctx.fillStyle = 'white';
+      ctx.font = '30px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(`${currentTurn}'s Turn`, centerX, 50);
+
+      // Draw experience and level
+      ctx.fillStyle = 'red';
+      ctx.font = '20px Arial';
+      ctx.textAlign = 'left';
+      ctx.fillText(`Level: ${playerLevel}`, 20, canvasHeight - 180);
+      ctx.fillText(
+        `EXP: ${currentExp} / ${expToLevelUp}`,
+        20,
+        canvasHeight - 150
       );
-    } else {
-      ctx.drawImage(
-        playerImage.current,
-        playerX,
-        playerY,
-        playerWidth,
-        playerHeight
-      );
-    }
 
-    // Draw enemy
-    if (enemyState === 'attacking') {
-      ctx.drawImage(
-        enemyAttackImage.current,
-        enemyX,
-        enemyY,
-        enemyWidth,
-        enemyHeight
-      );
-    } else {
-      ctx.drawImage(
-        enemyImage.current,
-        enemyX,
-        enemyY,
-        enemyWidth,
-        enemyHeight
-      );
-    }
+      // Draw buttons on canvas
+      drawCanvasButton(ctx, {
+        x: 10,
+        y: 10,
+        width: 150,
+        height: 40,
+        text: 'Back to Lobby',
+        isHovered: hoveredButtonRef.current === 'backButton',
+      });
 
-    // Draw turn indicator
-    ctx.fillStyle = 'white';
-    ctx.font = '30px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(`${currentTurn}'s Turn`, centerX, 50);
+      drawCanvasButton(ctx, {
+        x: 10,
+        y: 60,
+        width: 150,
+        height: 40,
+        text: 'Next Turn',
+        isHovered: hoveredButtonRef.current === 'turnButton',
+      });
 
-    // Draw experience and level
-    ctx.fillStyle = 'red';
-    ctx.font = '20px Arial';
-    ctx.textAlign = 'left';
-    ctx.fillText(`Level: ${playerLevel}`, 20, canvasHeight - 180);
-    ctx.fillText(
-      `EXP: ${currentExp} / ${expToLevelUp}`,
-      20,
-      canvasHeight - 150
-    );
+      // Increment angles for circular motion
+      const maxAngle = 2 * Math.PI;
 
-    // Draw buttons on canvas
-    drawCanvasButton(ctx, {
-      x: 10,
-      y: 10,
-      width: 150,
-      height: 40,
-      text: 'Back to Lobby',
-      isHovered: hoveredButtonRef.current === 'backButton',
-    });
-
-    drawCanvasButton(ctx, {
-      x: 10,
-      y: 60,
-      width: 150,
-      height: 40,
-      text: 'Next Turn',
-      isHovered: hoveredButtonRef.current === 'turnButton',
-    });
-
-    // Increment angles for circular motion
-    const maxAngle = 2 * Math.PI;
-
-    if (currentTurn === 'Player') {
-      anglePlayerRef.current = (anglePlayerRef.current + 0.002) % maxAngle;
-      angleEnemyRef.current = (angleEnemyRef.current + 0.005) % maxAngle;
-    } else {
-      anglePlayerRef.current = (anglePlayerRef.current + 0.005) % maxAngle;
-      angleEnemyRef.current = (angleEnemyRef.current + 0.002) % maxAngle;
-    }
-  };
+      if (currentTurn === 'Player') {
+        anglePlayerRef.current = (anglePlayerRef.current + 0.002) % maxAngle;
+        angleEnemyRef.current = (angleEnemyRef.current + 0.005) % maxAngle;
+      } else {
+        anglePlayerRef.current = (anglePlayerRef.current + 0.005) % maxAngle;
+        angleEnemyRef.current = (angleEnemyRef.current + 0.002) % maxAngle;
+      }
+    },
+    [
+      canvasHeight,
+      canvasWidth,
+      currentTurn,
+      enemyImageSize,
+      playerImageSize,
+      playerState,
+      enemyState,
+      playerLevel,
+      currentExp,
+      expToLevelUp,
+    ]
+  );
 
   // Function to draw buttons on canvas
   const drawCanvasButton = (ctx, button) => {
@@ -329,15 +365,15 @@ function BattleScene({ selectedPng, stats, onBackToLobby, addItemToInventory, se
     );
   };
 
-  // Function to handle loot drops (Modified to use App.js functions)
-  const handleLootDrops = (lootTable) => {
+const handleLootDrops = useCallback(
+  (lootTable) => {
     const obtainedLoot = [];
 
     lootTable.forEach((loot) => {
       const rand = Math.random();
       if (rand <= loot.dropRate) {
-        // Find the item details from lootItems
-        const item = lootItems.find((i) => i.name === loot.item);
+        // Find the item details from itemsList
+        const item = itemsList.find((i) => i.name === loot.item);
         if (item) {
           obtainedLoot.push(item);
           addItemToInventory(item); // Add to inventory via App.js function
@@ -349,47 +385,56 @@ function BattleScene({ selectedPng, stats, onBackToLobby, addItemToInventory, se
       // Set lastLoot via App.js function
       setLastLoot(obtainedLoot);
     }
-  };
-
-  // Additional state for loot modal (Removed from BattleScene)
-  // const [showLootModal, setShowLootModal] = useState(false);
-  // const [lootedItems, setLootedItems] = useState([]); // Items obtained in the current drop
+  },
+  [addItemToInventory, setLastLoot, itemsList]
+);
 
   // Handle skill actions
-  const handleSkillAction = (skillName) => {
-    if (isClicked.current >= 1) return; // Prevent further clicks
-    isClicked.current += 1; // Mark as clicked
+  const handleSkillAction = useCallback(
+    (skillName) => {
+      if (isClicked.current >= 1) return; // Prevent further clicks
+      isClicked.current += 1; // Mark as clicked
 
-    playClickSound();
+      playClickSound();
 
-    if (skillName === 'Attack') {
-      setPlayerState('attacking');
-      playAttackSound();
+      if (skillName === 'Attack') {
+        setPlayerState('attacking');
+        playAttackSound();
 
-      setEnemyHP((prevHP) => {
-        const damage = Math.max(0, playerAttack - enemyStats.defense);
-        const newHP = Math.max(prevHP - damage, 0);
-        if (newHP < prevHP) {
-          playDamageSound();
-        }
-        return newHP;
-      });
+        setEnemyHP((prevHP) => {
+          const damage = Math.max(0, playerAttack - enemyStats.defense);
+          const newHP = Math.max(prevHP - damage, 0);
+          if (newHP < prevHP) {
+            playDamageSound();
+          }
+          return newHP;
+        });
 
-      setTimeout(() => {
-        setPlayerState('normal');
-        if (enemyHP > 0) {
-          setCurrentTurn('Enemy');
-        }
-      }, 500);
-    } else if (skillName === 'Heal') {
-      setPlayerHP((prevHP) => Math.min(prevHP + 15, playerMaxHp));
-      setTimeout(() => setCurrentTurn('Enemy'), 500);
-    } else if (skillName === 'Defend') {
-      // Implement defend functionality if needed
-      setTimeout(() => setCurrentTurn('Enemy'), 500);
-    }
-    // Add more skill effects as needed
-  };
+        setTimeout(() => {
+          setPlayerState('normal');
+          if (enemyHP > 0) {
+            setCurrentTurn('Enemy');
+          }
+        }, 500);
+      } else if (skillName === 'Heal') {
+        setPlayerHP((prevHP) => Math.min(prevHP + 15, playerMaxHp));
+        setTimeout(() => setCurrentTurn('Enemy'), 500);
+      } else if (skillName === 'Defend') {
+        // Implement defend functionality if needed
+        setTimeout(() => setCurrentTurn('Enemy'), 500);
+      }
+      // Add more skill effects as needed
+    },
+    [
+      playerAttack,
+      enemyStats.defense,
+      enemyHP,
+      playAttackSound,
+      playDamageSound,
+      playClickSound,
+      playerMaxHp,
+    ]
+  );
 
   // Enemy action effect
   useEffect(() => {
@@ -474,7 +519,6 @@ function BattleScene({ selectedPng, stats, onBackToLobby, addItemToInventory, se
     }
 
     // Update cookies and show victory modal
-    
     Cookies.set('stats', JSON.stringify(updatedStats), { expires: 7 });
     setShowVictoryModal(true);
     playVictorySound();
@@ -507,8 +551,7 @@ function BattleScene({ selectedPng, stats, onBackToLobby, addItemToInventory, se
       enemyDefeatHandled.current = true;
       handleEnemyDefeat();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enemyHP]);
+  }, [enemyHP, handleEnemyDefeat]);
 
   // Handle player defeat
   const handlePlayerDefeat = useCallback(() => {
@@ -519,69 +562,87 @@ function BattleScene({ selectedPng, stats, onBackToLobby, addItemToInventory, se
   }, [onBackToLobby]);
 
   // Mouse event handlers for the canvas
-  const handleMouseMove = (e) => {
-    const canvas = e.target;
-    const rect = canvas.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
+  const handleMouseMove = useCallback(
+    (e) => {
+      const canvas = e.target;
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
 
-    // Check if the mouse is over the Back to Lobby button
-    if (mouseX >= 10 && mouseX <= 160 && mouseY >= 10 && mouseY <= 50) {
-      if (hoveredButtonRef.current !== 'backButton') {
-        hoveredButtonRef.current = 'backButton';
-        playHoverSound();
+      // Check if the mouse is over the Back to Lobby button
+      if (
+        mouseX >= 10 &&
+        mouseX <= 160 &&
+        mouseY >= 10 &&
+        mouseY <= 50
+      ) {
+        if (hoveredButtonRef.current !== 'backButton') {
+          hoveredButtonRef.current = 'backButton';
+          playHoverSound();
+        }
       }
-    }
-    // Check if the mouse is over the Next Turn button
-    else if (
-      mouseX >= 10 &&
-      mouseX <= 160 &&
-      mouseY >= 60 &&
-      mouseY <= 100
-    ) {
-      if (hoveredButtonRef.current !== 'turnButton') {
-        hoveredButtonRef.current = 'turnButton';
-        playHoverSound();
+      // Check if the mouse is over the Next Turn button
+      else if (
+        mouseX >= 10 &&
+        mouseX <= 160 &&
+        mouseY >= 60 &&
+        mouseY <= 100
+      ) {
+        if (hoveredButtonRef.current !== 'turnButton') {
+          hoveredButtonRef.current = 'turnButton';
+          playHoverSound();
+        }
+      } else {
+        if (hoveredButtonRef.current !== null) {
+          hoveredButtonRef.current = null;
+        }
       }
-    } else {
-      if (hoveredButtonRef.current !== null) {
-        hoveredButtonRef.current = null;
-      }
-    }
-  };
+    },
+    [playHoverSound]
+  );
 
-  const handleMouseClick = (e) => {
-    const canvas = e.target;
-    const rect = canvas.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
+  const handleMouseClick = useCallback(
+    (e) => {
+      const canvas = e.target;
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
 
-    // Check if the Back to Lobby button was clicked
-    if (mouseX >= 10 && mouseX <= 160 && mouseY >= 10 && mouseY <= 50) {
-      playClickSound();
-      onBackToLobby();
-    }
-    // Check if the Next Turn button was clicked
-    else if (
-      mouseX >= 10 &&
-      mouseX <= 160 &&
-      mouseY >= 60 &&
-      mouseY <= 100
-    ) {
-      playClickSound();
-      setCurrentTurn((prevTurn) =>
-        prevTurn === 'Player' ? 'Enemy' : 'Player'
-      );
-    }
-  };
+      // Check if the Back to Lobby button was clicked
+      if (
+        mouseX >= 10 &&
+        mouseX <= 160 &&
+        mouseY >= 10 &&
+        mouseY <= 50
+      ) {
+        playClickSound();
+        onBackToLobby();
+      }
+      // Check if the Next Turn button was clicked
+      else if (
+        mouseX >= 10 &&
+        mouseX <= 160 &&
+        mouseY >= 60 &&
+        mouseY <= 100
+      ) {
+        playClickSound();
+        setCurrentTurn((prevTurn) =>
+          prevTurn === 'Player' ? 'Enemy' : 'Player'
+        );
+      }
+
+      // Optionally, handle clicks on inventory items here
+      // For example, using or equipping items
+    },
+    [playClickSound, onBackToLobby]
+  );
 
   // Watch for playerHP changes to handle player defeat
   useEffect(() => {
     if (playerHP <= 0) {
       handlePlayerDefeat();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playerHP]);
+  }, [playerHP, handlePlayerDefeat]);
 
   return (
     <div

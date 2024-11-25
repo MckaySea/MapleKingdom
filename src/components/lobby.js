@@ -1,20 +1,22 @@
-// src/components/Lobby.js
+// src/components/lobby.js
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-
 import useAudio from './battleComponents/useAudio';
-import '../App.css'; // Ensure App.css is imported if using external CSS
-import itemsList from './itemslist'; // Ensure this path is correctfin
+import '../App.css';
+import itemsList from './itemslist';
+import CanvasRenderer from './battleComponents/canvasRenderer';
 
 function Lobby({
   stats,
   selectedPng,
+  selectedAtkPng,
   inventory,
+  itemsList,
   onEnterBattle,
   addItemToInventory,
   lastLoot,
   setLastLoot,
 }) {
-  const canvasWidth = window.innerWidth * 0.7; // 70% width for canvas
+  const canvasWidth = window.innerWidth * 0.7;
   const canvasHeight = window.innerHeight;
 
   // UI State
@@ -72,32 +74,30 @@ function Lobby({
   // Audio hooks
   // const playHoverSound = useAudio('/sounds/hover.mp3');
   // const playClickSound = useAudio('/sounds/clicker.mp3');
-  
 
   // Background and character images
   const background = useRef(new Image());
   const characterImage = useRef(new Image());
+  const characterAttackImage = useRef(new Image()); // Ref for attack image
   const frameCount = useRef(0);
 
   background.current.src = '/msbg.jpg'; // Retro-style lobby background image
-  characterImage.current.src = selectedPng; // Character PNG
+  characterImage.current.src = selectedPng; // Character defense PNG
+  characterAttackImage.current.src = selectedAtkPng; // Character attack PNG
+
+  // Handle image load errors
+  characterImage.current.onerror = () => {
+    characterImage.current.src = selectedPng; // Fallback image
+  };
+
+  characterAttackImage.current.onerror = () => {
+    characterAttackImage.current.src = selectedAtkPng; // Fallback image
+  };
 
   // Button hover state
   const hoveredButtonRef = useRef(null);
 
-  // // Preload inventory item images
-  // const itemImages = useMemo(() => {
-  //   const images = {};
-  //   itemsList.forEach((item) => {
-  //     const img = new Image();
-  //     img.src = item.png;
-  //     images[item.id] = img;
-  //   });
-  //   return images;
-  // }, [itemsList]);
-
   // Drawing function
-  // eslint-disable-next-line no-unused-vars
   const draw = (ctx) => {
     // Clear canvas
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
@@ -105,26 +105,12 @@ function Lobby({
     // Draw background
     ctx.drawImage(background.current, 0, 0, canvasWidth, canvasHeight);
 
-    // Draw player stats in retro style
-    ctx.fillStyle = 'red';
-    ctx.font = '20px "Press Start 2P"'; // Retro pixel-style font
-    ctx.textAlign = 'left';
-
-    ctx.fillText(`Level: ${level}`, 20, 50);
-    ctx.fillText(`EXP: ${currentExp} / ${expToLevelUp}`, 20, 80);
-    ctx.fillText(`Attack: ${attack}`, 20, 110);
-    ctx.fillText(`Defense: ${defense}`, 20, 140);
-    ctx.fillText(`Max HP: ${maxHp}`, 20, 170);
-    ctx.fillText(`Agility: ${agility}`, 20, 200);
-    ctx.fillText(`Dexterity: ${dexterity}`, 20, 230);
-    ctx.fillText(`Luck: ${luck}`, 20, 260);
-
     // Animate the character sway
     const swayAmplitude = 15; // Amplitude of the sway in pixels
     const swaySpeed = 0.05; // Speed of the sway
     const swayOffset = Math.sin(frameCount.current * swaySpeed) * swayAmplitude;
 
-    // Draw character image with sway effect
+    // Draw character defense image with sway effect
     const characterX = canvasWidth / 2 - playerImageSize / 2;
     const characterY = canvasHeight / 2 - 200 + swayOffset;
 
@@ -134,6 +120,19 @@ function Lobby({
       characterY,
       playerImageSize,
       playerImageSize
+    );
+
+    // Draw character attack image (e.g., overlay or side position)
+    const attackImageSize = playerImageSize * 0.6; // Smaller size for attack
+    const attackX = characterX + playerImageSize - attackImageSize / 2;
+    const attackY = characterY - attackImageSize / 2;
+
+    ctx.drawImage(
+      characterAttackImage.current,
+      attackX,
+      attackY,
+      attackImageSize,
+      attackImageSize
     );
 
     // Draw buttons
@@ -174,74 +173,72 @@ function Lobby({
     ctx.fillText(text, x + width / 2, y + height / 2);
   };
 
-  // // Mouse event handlers for canvas
-  // const handleMouseMove = (e) => {
-  //   const canvas = e.target;
-  //   const rect = canvas.getBoundingClientRect();
-  //   const mouseX = e.clientX - rect.left;
-  //   const mouseY = e.clientY - rect.top;
+  // Mouse event handlers for canvas
+  const handleMouseMove = (e) => {
+    const canvas = e.target;
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
 
-  //   // Handle hover over buttons
-  //   // Check if mouse is over the Enter Battle button
-  //   if (
-  //     mouseX >= canvasWidth / 2 - 100 &&
-  //     mouseX <= canvasWidth / 2 + 100 &&
-  //     mouseY >= canvasHeight / 2 - 60 &&
-  //     mouseY <= canvasHeight / 2 - 20
-  //   ) {
-  //     if (hoveredButtonRef.current !== 'enterBattle') {
-  //       hoveredButtonRef.current = 'enterBattle';
-  //       playHoverSound();
-  //     }
-  //   }
-  //   // Check if mouse is over the Quit Game button
-  //   else if (
-  //     mouseX >= canvasWidth / 2 - 100 &&
-  //     mouseX <= canvasWidth / 2 + 100 &&
-  //     mouseY >= canvasHeight / 2 &&
-  //     mouseY <= canvasHeight / 2 + 40
-  //   ) {
-  //     if (hoveredButtonRef.current !== 'quitGame') {
-  //       hoveredButtonRef.current = 'quitGame';
-  //       playHoverSound();
-  //     }
-  //   } else {
-  //     if (hoveredButtonRef.current !== null) {
-  //       hoveredButtonRef.current = null;
-  //     }
-  //   }
-  // };
+    // Handle hover over buttons
+    if (
+      mouseX >= canvasWidth / 2 - 100 &&
+      mouseX <= canvasWidth / 2 + 100 &&
+      mouseY >= canvasHeight / 2 - 60 &&
+      mouseY <= canvasHeight / 2 - 20
+    ) {
+      if (hoveredButtonRef.current !== 'enterBattle') {
+        hoveredButtonRef.current = 'enterBattle';
+        // playHoverSound(); // Uncomment if using sound
+      }
+    }
+    else if (
+      mouseX >= canvasWidth / 2 - 100 &&
+      mouseX <= canvasWidth / 2 + 100 &&
+      mouseY >= canvasHeight / 2 &&
+      mouseY <= canvasHeight / 2 + 40
+    ) {
+      if (hoveredButtonRef.current !== 'quitGame') {
+        hoveredButtonRef.current = 'quitGame';
+        // playHoverSound(); // Uncomment if using sound
+      }
+    } else {
+      if (hoveredButtonRef.current !== null) {
+        hoveredButtonRef.current = null;
+      }
+    }
+  };
 
-  // const handleMouseClick = (e) => {
-  //   const canvas = e.target;
-  //   const rect = canvas.getBoundingClientRect();
-  //   const mouseX = e.clientX - rect.left;
-  //   const mouseY = e.clientY - rect.top;
+  const handleMouseClick = (e) => {
+    const canvas = e.target;
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
 
-  //   // Enter Battle button
-  //   if (
-  //     mouseX >= canvasWidth / 2 - 100 &&
-  //     mouseX <= canvasWidth / 2 + 100 &&
-  //     mouseY >= canvasHeight / 2 - 60 &&
-  //     mouseY <= canvasHeight / 2 - 20
-  //   ) {
-  //     playClickSound();
-  //     onEnterBattle(); // Trigger battle scene
-  //   }
-  //   // Quit Game button
-  //   else if (
-  //     mouseX >= canvasWidth / 2 - 100 &&
-  //     mouseX <= canvasWidth / 2 + 100 &&
-  //     mouseY >= canvasHeight / 2 &&
-  //     mouseY <= canvasHeight / 2 + 40
-  //   ) {
-  //     playClickSound();
-  //     alert('Thanks for playing!');
-  //   }
+    // Enter Battle button
+    if (
+      mouseX >= canvasWidth / 2 - 100 &&
+      mouseX <= canvasWidth / 2 + 100 &&
+      mouseY >= canvasHeight / 2 - 60 &&
+      mouseY <= canvasHeight / 2 - 20
+    ) {
+      // playClickSound(); // Uncomment if using sound
+      onEnterBattle(); // Trigger battle scene
+    }
+    // Quit Game button
+    else if (
+      mouseX >= canvasWidth / 2 - 100 &&
+      mouseX <= canvasWidth / 2 + 100 &&
+      mouseY >= canvasHeight / 2 &&
+      mouseY <= canvasHeight / 2 + 40
+    ) {
+      // playClickSound(); // Uncomment if using sound
+      alert('Thanks for playing!');
+    }
 
-  //   // Optionally, handle clicks on inventory items here
-  //   // For example, using or equipping items
-  // };
+    // Optionally, handle clicks on inventory items here
+    // For example, using or equipping items
+  };
 
   return (
     <div
@@ -253,8 +250,7 @@ function Lobby({
       }}
     >
       {/* Canvas Section */}
-      {/* Uncomment and adjust if you want to display the canvas */}
-      {/* <div style={{ flex: '7 7 70%', position: 'relative' }}>
+      <div style={{ flex: '7 7 70%', position: 'relative' }}>
         <CanvasRenderer
           draw={draw}
           width={canvasWidth}
@@ -262,7 +258,7 @@ function Lobby({
           onMouseMove={handleMouseMove}
           onClick={handleMouseClick}
         />
-      </div> */}
+      </div>
 
       {/* UI Section */}
       <div
@@ -273,12 +269,15 @@ function Lobby({
           padding: '20px',
           boxSizing: 'border-box',
           overflowY: 'auto',
+          overflowX: 'hidden', // Prevent horizontal overflow
           position: 'relative',
+          display: 'flex',
+          flexDirection: 'column', // Stack children vertically
         }}
       >
-        <h1 className="text-2xl font-bold mb-4">Welcome to the Lobby!</h1>
+        <h1 className="inventory-title">Welcome to the Lobby!</h1>
         {/* Display Player Stats */}
-        <PlayerStats selectedPng={selectedPng} stats={stats} />
+        <PlayerStats selectedPng={selectedPng} selectedAtkPng={selectedAtkPng} stats={stats} />
 
         {/* Display Inventory */}
         <InventoryGrid
@@ -290,100 +289,18 @@ function Lobby({
         {/* Enter Battle Button */}
         <button
           onClick={onEnterBattle}
-          style={{
-            padding: '10px 20px',
-            fontSize: '16px',
-            backgroundColor: '#4CAF50',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            width: '100%',
-            marginBottom: '20px',
-          }}
+          className="enter-battle-button"
         >
           Enter Battle
         </button>
 
-        {/* Optional: Add UI elements outside the canvas for inventory management */}
-        {/* For example, buttons to add items for testing */}
-        <div>
-          <h3 className="text-xl font-semibold mb-2">Manage Inventory</h3>
-          <button
-            onClick={() => addItemToInventory(1)}
-            style={{
-              padding: '5px 10px',
-              marginRight: '10px',
-              marginBottom: '10px',
-              cursor: 'pointer',
-              backgroundColor: '#555',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '3px',
-            }}
-          >
-            Add Health Potion
-          </button>
-          <button
-            onClick={() => addItemToInventory(2)}
-            style={{
-              padding: '5px 10px',
-              marginRight: '10px',
-              marginBottom: '10px',
-              cursor: 'pointer',
-              backgroundColor: '#555',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '3px',
-            }}
-          >
-            Add Mana Potion
-          </button>
-          <button
-            onClick={() => addItemToInventory(3)}
-            style={{
-              padding: '5px 10px',
-              marginRight: '10px',
-              marginBottom: '10px',
-              cursor: 'pointer',
-              backgroundColor: '#555',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '3px',
-            }}
-          >
-            Add Sword
-          </button>
-          <button
-            onClick={() => addItemToInventory(4)}
-            style={{
-              padding: '5px 10px',
-              marginRight: '10px',
-              marginBottom: '10px',
-              cursor: 'pointer',
-              backgroundColor: '#555',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '3px',
-            }}
-          >
-            Add Shield
-          </button>
-          <button
-            onClick={() => addItemToInventory(5)}
-            style={{
-              padding: '5px 10px',
-              marginRight: '10px',
-              marginBottom: '10px',
-              cursor: 'pointer',
-              backgroundColor: '#555',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '3px',
-            }}
-          >
-            Add Magic Scroll
-          </button>
+        {/* Manage Inventory Buttons */}
+        <div className="manage-inventory-buttons">
+          <button onClick={() => addItemToInventory(1)}>Add Health Potion</button>
+          <button onClick={() => addItemToInventory(2)}>Add Mana Potion</button>
+          <button onClick={() => addItemToInventory(3)}>Add Sword</button>
+          <button onClick={() => addItemToInventory(4)}>Add Shield</button>
+          <button onClick={() => addItemToInventory(5)}>Add Magic Scroll</button>
         </div>
 
         {/* Loot Modal */}
@@ -399,21 +316,8 @@ function Lobby({
           <div
             className="retro-tooltip"
             style={{
-              position: 'fixed',
               top: tooltip.position.y + 10, // Slight offset
               left: tooltip.position.x + 10,
-              backgroundColor: 'rgba(0, 0, 0, 0.9)',
-              color: 'white',
-              padding: '8px 12px',
-              borderRadius: '4px',
-              pointerEvents: 'none', // Allows mouse events to pass through
-              maxWidth: '200px',
-              zIndex: 300, // Above other elements
-              whiteSpace: 'pre-wrap',
-              fontFamily: '"Press Start 2P", cursive', // Retro font
-              fontSize: '10px',
-              border: '2px dashed #fff', // Retro border
-              boxShadow: '0 0 5px rgba(255, 255, 255, 0.5)', // Optional glow
             }}
           >
             {tooltip.content}
@@ -424,30 +328,43 @@ function Lobby({
   );
 }
 
-export default Lobby;
-
 // Sub-components
 
 // PlayerStats Component
-// PlayerStats Component
-function PlayerStats({ selectedPng, stats }) {
+function PlayerStats({ selectedPng, selectedAtkPng, stats }) {
   return (
-    <div className="player-stats-container">
-      <img
-        src={selectedPng}
-        alt="Player"
-        width={150} /* Increased size for better visibility */
-        height={150}
-        className="player-image sway-animation mb-4"
-      />
+    <div className="player-stats-container" style={{ marginBottom: '20px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+        <img
+          src={selectedPng}
+          alt="Player Defense"
+          className="player-image mr-4"
+          style={{
+            width: '100px', // Adjust as needed
+            height: '100px',
+            objectFit: 'contain',
+          }}
+        />
+        {/* Uncomment if you want to display attack image */}
+        {/* <img
+          src={selectedAtkPng}
+          alt="Player Attack"
+          className="player-attack-image sway-animation"
+          style={{
+            width: '80px',
+            height: '80px',
+            objectFit: 'contain',
+          }}
+        /> */}
+      </div>
       <div className="player-stats">
-        <div className="stats-row">
+        <div className="stats-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
           <p className="stat-item">Level: {stats.level}</p>
           <p className="stat-item">EXP: {stats.currentExp} / {stats.expToLevelUp}</p>
           <p className="stat-item">Attack: {stats.attack}</p>
           <p className="stat-item">Defense: {stats.defense}</p>
         </div>
-        <div className="stats-row">
+        <div className="stats-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
           <p className="stat-item">Max HP: {stats.maxHp}</p>
           <p className="stat-item">Agility: {stats.agility}</p>
           <p className="stat-item">Dexterity: {stats.dexterity}</p>
@@ -458,65 +375,63 @@ function PlayerStats({ selectedPng, stats }) {
   );
 }
 
-
 // InventoryGrid Component
 function InventoryGrid({ inventory, itemsList, setTooltip }) {
-  // Create a fixed 10x10 grid (100 slots)
-  const gridSize = 100;
-  const slots = Array.from({ length: gridSize }, (_, index) => index);
+  // Map inventory IDs to item objects, including empty slots if needed
+  const items = inventory.map((itemId, index) => itemsList.find((itm) => itm.id === itemId) || null);
 
-  // Handle item use
   const handleUseItem = (itemId) => {
     const item = itemsList.find((itm) => itm.id === itemId);
     if (item) {
       alert(`Used ${item.name}!`);
       // Implement logic to use or equip the item
-      // For example, remove from inventory if consumableheal
+      // For example, remove from inventory if consumable
     }
   };
-  const playTooltipSound = useAudio('/sounds/hover.mp3'); // Optional: Tooltip sound
-  return (
-    <div className="inventory-grid-container mb-5">
-    <h2 className="inventory-title text-center">Your Inventory</h2>
-    <div className="inventory-grid">
-      {slots.map((slotIndex) => {
-        const item = inventory[slotIndex]
-          ? itemsList.find((itm) => itm.id === inventory[slotIndex])
-          : null;
 
-        return item ? (
-          <div
-            key={slotIndex}
-            className="inventory-item"
-            onClick={() => handleUseItem(item.id)}
-            onMouseEnter={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              setTooltip({
-                visible: true,
-                content: item.description,
-                position: { x: rect.left + rect.width / 2, y: rect.top },
-              });
-              playTooltipSound(); // Optional: Play tooltip sound
-            }}
-            onMouseLeave={() =>
-              setTooltip({ visible: false, content: '', position: { x: 0, y: 0 } })
-            }
-          >
-            <img
-              src={item.png}
-              alt={item.name}
-              className="inventory-item-image"
-            />
-            <span className="inventory-item-name">{item.name}</span>
-          </div>
-        ) : (
-          // Empty Slot
-          <div key={slotIndex} className="inventory-empty-slot"></div>
-        );
-      })}
+  const playTooltipSound = useAudio('/sounds/hover.mp3'); // Optional: Tooltip sound
+
+  return (
+    <div className="inventory-grid-container">
+      <h2 className="inventory-title">Your Inventory</h2>
+      <div className="inventory-grid">
+        {items.map((item, index) => (
+          item ? (
+            <div
+              key={index}
+              className="inventory-item"
+              onClick={() => handleUseItem(item.id)}
+              onMouseEnter={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                setTooltip({
+                  visible: true,
+                  content: item.description,
+                  position: { x: rect.left + rect.width / 2, y: rect.top },
+                });
+                playTooltipSound(); // Optional: Play tooltip sound
+              }}
+              onMouseLeave={() =>
+                setTooltip({ visible: false, content: '', position: { x: 0, y: 0 } })
+              }
+            >
+              <img
+                src={item.png}
+                alt={item.name}
+                className="inventory-item-image"
+              />
+              <span className="inventory-item-name">{item.name}</span>
+            </div>
+          ) : (
+            <div
+              key={index}
+              className="inventory-empty-slot"
+            ></div>
+          )
+        ))}
+      </div>
     </div>
-  </div>
-  )}
+  );
+}
 
 // LootModal Component
 function LootModal({ lootedItems, handleCloseLootModal }) {
@@ -525,8 +440,8 @@ function LootModal({ lootedItems, handleCloseLootModal }) {
       style={{
         position: 'fixed',
         top: 0,
-        left: '70%', // Position it to the right of the canvas (70% width)
-        width: '30%',
+        left: 0,
+        width: '100%', // Full width to cover the entire screen
         height: '100vh',
         backgroundColor: 'rgba(0, 0, 0, 0.95)',
         color: 'white',
@@ -534,7 +449,7 @@ function LootModal({ lootedItems, handleCloseLootModal }) {
         justifyContent: 'center',
         alignItems: 'center',
         flexDirection: 'column',
-        zIndex: 200, // Higher than other elements
+        zIndex: 200, // Ensure it's above other elements
       }}
     >
       <h1 style={{ fontSize: '48px', marginBottom: '20px' }}>Loot Obtained!</h1>
@@ -554,19 +469,12 @@ function LootModal({ lootedItems, handleCloseLootModal }) {
       </div>
       <button
         onClick={handleCloseLootModal}
-        style={{
-          marginTop: '30px',
-          padding: '10px 20px',
-          fontSize: '18px',
-          backgroundColor: '#FFD700', // Gold color for emphasis
-          color: 'black',
-          border: 'none',
-          borderRadius: '5px',
-          cursor: 'pointer',
-        }}
+        className="loot-continue-button"
       >
         Continue
       </button>
     </div>
   );
 }
+
+export default Lobby;

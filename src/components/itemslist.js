@@ -1,38 +1,37 @@
-// src/items.js
+// src/components/itemslist.js
 
 const itemsList = [
-    {
-      id: 1,
-      name: 'Health Potion',
-      png: '/items/hppot.png',
-      description: 'Restores 50 HP when used.',
-    },
-    {
-      id: 2,
-      name: 'Mana Potion',
-      png: '/items/manapot.png',
-      description: 'Restores 30 MP when used.',
-    },
-    {
-      id: 3,
-      name: 'Maple Staff',
-      png: '/items/maplestaff.png',
-      description: 'Increases attack power by 10.',
-    },
-    {
-      id: 4,
-      name: 'Shield',
-      png: '/items/mapleshield.png',
-      description: 'Increases defense by 15.',
-    },
-    {
-      id: 5,
-      name: 'Magic Scroll',
-      png: '/items/magicscroll.png',
-      description: 'Casts a random spell.',
-    },
-    // Add more items with descriptions as needed
-  ];
-  
-  export default itemsList;
-  
+  {
+    id: 1,
+    name: 'Health Potion',
+    description: 'Restores 50 HP.',
+    png: '/items/hppot.png',
+  },
+  {
+    id: 2,
+    name: 'Mana Potion',
+    description: 'Restores 30 MP.',
+    png: '/items/manapot.png',
+  },
+  {
+    id: 3,
+    name: 'Sword',
+    description: 'Increases attack by 5.',
+    png: '/items/swordmaple.png',
+  },
+  {
+    id: 4,
+    name: 'Shield',
+    description: 'Increases defense by 5.',
+    png: '/items/shield.png',
+  },
+  {
+    id: 5,
+    name: 'Gold Coin',
+    description: 'Currency for purchasing items.',
+    png: '/items/goldcoin.png',
+  },
+  // Add more items as needed
+];
+
+export default itemsList;
