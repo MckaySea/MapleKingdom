@@ -388,7 +388,7 @@ function PlayerStats() {
     return <div>Loading stats...</div>; // Fallback if stats are not yet loaded
   }
 
-  const { level, skillPoints, attack, defense, maxHp, agility, currentExp, expToLevelUp } = stats;
+  const { level, skillPoints, attack, defense, maxHp, agility, currentExp, expToLevelUp, dexterity, intellect } = stats;
 
   return (
     <div className="player-stats-container" style={{ marginBottom: '20px' }}>
@@ -418,6 +418,18 @@ function PlayerStats() {
         <p>Agility: {agility}</p>
         {skillPoints > 0 && (
           <button onClick={() => allocateSkillPoint('agility')}>+</button>
+        )}
+      </div>
+      <div className="stats-row" style={{ display: 'flex', gap: '10px' }}>
+        <p>Dexterity: {dexterity}</p>
+        {skillPoints > 0 && (
+          <button onClick={() => allocateSkillPoint('dexterity')}>+</button>
+        )}
+      </div>
+      <div className="stats-row" style={{ display: 'flex', gap: '10px' }}>
+        <p>Intellect: {intellect}</p>
+        {skillPoints > 0 && (
+          <button onClick={() => allocateSkillPoint('intellect')}>+</button>
         )}
       </div>
     </div>
