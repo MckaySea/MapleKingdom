@@ -125,8 +125,8 @@ function Lobby({
 
     // Draw character attack image (e.g., overlay or side position)
     const attackImageSize = playerImageSize * 0.6; // Smaller size for attack
-    const attackX = characterX + playerImageSize - attackImageSize / 2;
-    const attackY = characterY - attackImageSize / 2;
+    // const attackX = characterX + playerImageSize - attackImageSize / 2;
+    // const attackY = characterY - attackImageSize / 2;
 
     // ctx.drawImage(
     //   characterAttackImage.current,
