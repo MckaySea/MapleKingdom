@@ -29,6 +29,63 @@ function App() {
     Cookies.set('playerId', newPlayerId, { expires: 7 });
     return newPlayerId;
   });
+  const addItemToInventory = (itemId) => {
+    setInventory((prevInventory) => {
+      const updatedInventory = [...prevInventory, itemId];
+      Cookies.set('inventory', JSON.stringify(updatedInventory), { expires: 7 });
+      return updatedInventory;
+    });
+  };
+  const equipItem = (itemId) => {
+    const item = itemsList.find((itm) => itm.id === itemId);
+  
+    if (item && item.equippable) {
+      setEquipped((prevEquipped) => {
+        if (prevEquipped.includes(itemId)) return prevEquipped; // Already equipped
+  
+        const updatedEquipped = [...prevEquipped, itemId];
+  
+        // Update stats based on item properties
+        setStats((prevStats) => {
+          const newStats = { ...prevStats };
+  
+          if (item.attack) newStats.attack += item.attack;
+          if (item.defense) newStats.defense += item.defense;
+  
+          Cookies.set('stats', JSON.stringify(newStats), { expires: 7 });
+          return newStats;
+        });
+  
+        Cookies.set('equipped', JSON.stringify(updatedEquipped), { expires: 7 });
+        return updatedEquipped;
+      });
+    }
+  };
+  
+  const unequipItem = (itemId) => {
+    const item = itemsList.find((itm) => itm.id === itemId);
+  
+    if (item && item.equippable) {
+      setEquipped((prevEquipped) => {
+        const updatedEquipped = prevEquipped.filter((id) => id !== itemId);
+  
+        // Update stats based on item properties
+        setStats((prevStats) => {
+          const newStats = { ...prevStats };
+  
+          if (item.attack) newStats.attack -= item.attack;
+          if (item.defense) newStats.defense -= item.defense;
+  
+          Cookies.set('stats', JSON.stringify(newStats), { expires: 7 });
+          return newStats;
+        });
+  
+        Cookies.set('equipped', JSON.stringify(updatedEquipped), { expires: 7 });
+        return updatedEquipped;
+      });
+    }
+  };
+  
 
   const audioRef = useRef(null);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(null);
@@ -196,17 +253,20 @@ function App() {
       {currentScene === 'characterCreation' ? (
         <CharacterCreation onCharacterCreate={handleCharacterCreation} />
       ) : currentScene === 'lobby' ? (
-        <Lobby
-          stats={stats}
-          selectedPng={selectedPng}
-          inventory={inventory}
-          itemsList={itemsList}
-          onEnterBattle={handleStartBattle}
-          onEnterExplore={handleEnterExplore}
-          lastLoot={lastLoot}
-          setLastLoot={setLastLoot}
-          equipped={equipped}
-        />
+<Lobby
+  stats={stats}
+  selectedPng={selectedPng}
+  inventory={inventory}
+  itemsList={itemsList}
+  onEnterBattle={handleStartBattle}
+  onEnterExplore={handleEnterExplore}
+  lastLoot={lastLoot}
+  setLastLoot={setLastLoot}
+  equipped={equipped}
+  equipItem={equipItem} // Pass equipItem
+  unequipItem={unequipItem} // Pass unequipItem
+  addItemToInventory={addItemToInventory} // Ensure addItem is passed
+/>
       ) : currentScene === 'explore' ? (
         <ExploreCanvas
           selectedPng={selectedPng}
