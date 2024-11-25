@@ -15,13 +15,13 @@ const itemsList = [
   },
   {
     id: 3,
-    name: 'Sword',
+    name: 'Maple Staff',
     description: 'Increases attack by 5.',
-    png: '/items/swordmaple.png',
+    png: '/items/maplestaff.png',
   },
   {
     id: 4,
-    name: 'Shield',
+    name: 'Maple Shield',
     description: 'Increases defense by 5.',
     png: '/items/mapleshield.png',
   },

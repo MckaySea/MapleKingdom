@@ -116,8 +116,8 @@ function BattleScene({
         agility: 10,
         level: 1,
         lootTable: [
-          { item: 'Health Potion', dropRate: 0.1 }, // 40% chance
-          { item: 'Maple Staff', dropRate: 0.6 },   // 10% chance
+          { item: 'Health Potion', dropRate: 0.2 }, // 40% chance
+          { item: 'Maple Staff', dropRate: 0.1 },   // 10% chance
         ],
       },
       {
@@ -130,9 +130,9 @@ function BattleScene({
         agility: 15,
         level: 5,
         lootTable: [
-          { item: 'Health Potion', dropRate: 0.6 }, // 60% chance
-          { item: 'Mana Potion', dropRate: 0.3 },   // 30% chance
-          { item: 'Shield', dropRate: 0.1 },        // 10% chance
+          { item: 'Health Potion', dropRate: 0.3 }, // 60% chance
+          { item: 'Maple Staff', dropRate: 0.1 },   // 30% chance
+          { item: 'Maple Shield', dropRate: 0.1 },        // 10% chance
         ],
       },
       // Add more enemies as needed
