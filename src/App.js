@@ -280,11 +280,11 @@ function App() {
         cursor: `url(${cursorPng}), auto`,
       }}
     >
-      {/* <audio
+       <audio
         ref={audioRef}
         onEnded={handleTrackEnd}
         style={{ display: 'none' }}
-      /> */}
+      /> 
       {currentScene === 'characterCreation' ? (
         <CharacterCreation onCharacterCreate={handleCharacterCreation} />
       ) : currentScene === 'lobby' ? (
