@@ -23,7 +23,7 @@ const itemsList = [
     id: 4,
     name: 'Shield',
     description: 'Increases defense by 5.',
-    png: '/items/shield.png',
+    png: '/items/mapleshield.png',
   },
   {
     id: 5,
