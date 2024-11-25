@@ -63,6 +63,7 @@ function Lobby({
   const playerMinSize = 25; // Smaller size at level 1
   const playerMaxSize = 150; // Maximum size at higher levels
   const playerMaxLevel = 50; // Level at which the size caps
+  const playHoverSound = useAudio('/sounds/hover.mp3');
 
   // Calculate player image size based on level
   const playerImageSize = useMemo(() => {
@@ -148,9 +149,9 @@ function Lobby({
     drawCanvasButton(ctx, {
       x: canvasWidth / 2 - 100,
       y: canvasHeight / 2,
-      width: 200,
+      width: 300,
       height: 40,
-      text: 'Quit Game',
+      text: 'Collect Resources',
       isHovered: hoveredButtonRef.current === 'quitGame',
     });
 
@@ -165,7 +166,7 @@ function Lobby({
   ) => {
     ctx.fillStyle = isHovered ? '#FF8261' : '#FF6347'; // Hover effect
     ctx.fillRect(x, y, width, height);
-
+  
     ctx.fillStyle = 'white';
     ctx.font = '16px "Press Start 2P"';
     ctx.textAlign = 'center';
@@ -188,8 +189,9 @@ function Lobby({
       mouseY <= canvasHeight / 2 - 20
     ) {
       if (hoveredButtonRef.current !== 'enterBattle') {
+        
         hoveredButtonRef.current = 'enterBattle';
-        // playHoverSound(); // Uncomment if using sound
+         playHoverSound(); // Uncomment if using sound
       }
     }
     else if (
@@ -200,7 +202,7 @@ function Lobby({
     ) {
       if (hoveredButtonRef.current !== 'quitGame') {
         hoveredButtonRef.current = 'quitGame';
-        // playHoverSound(); // Uncomment if using sound
+         playHoverSound(); // Uncomment if using sound
       }
     } else {
       if (hoveredButtonRef.current !== null) {
