@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import useAudio from './battleComponents/useAudio';
 import '../App.css';
-import itemsList from './itemslist';
+
 import CanvasRenderer from './battleComponents/canvasRenderer';
 
 function Lobby({
@@ -49,14 +49,14 @@ function Lobby({
   // Player stats destructuring
   const {
     level,
-    currentExp,
-    expToLevelUp,
-    attack,
-    defense,
-    maxHp,
-    agility,
-    dexterity,
-    luck,
+    // currentExp,
+    // expToLevelUp,
+    // attack,
+    // defense,
+    // maxHp,
+    // agility,
+    // dexterity,
+    // luck,
   } = stats;
 
   // Define minimum and maximum sizes

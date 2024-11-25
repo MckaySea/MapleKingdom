@@ -116,8 +116,8 @@ function BattleScene({
         agility: 10,
         level: 1,
         lootTable: [
-          { item: 'Health Potion', dropRate: 0.4 }, // 40% chance
-          { item: 'Maple Staff', dropRate: 0.1 },   // 10% chance
+          { item: 'Health Potion', dropRate: 0.1 }, // 40% chance
+          { item: 'Maple Staff', dropRate: 0.6 },   // 10% chance
         ],
       },
       {
@@ -376,7 +376,7 @@ const handleLootDrops = useCallback(
         const item = itemsList.find((i) => i.name === loot.item);
         if (item) {
           obtainedLoot.push(item);
-          addItemToInventory(item); // Add to inventory via App.js function
+          addItemToInventory(item.id); // Add to inventory via App.js function
         }
       }
     });
