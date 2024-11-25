@@ -7,8 +7,8 @@ function CharacterCreation({ onCharacterCreate }) {
     {
       id: 1,
       name: 'Warrior',
-      pngurl: '/sprtes3/5.png', // Defense Image
-      pngatk: '/sprtes3/7.png',  // Attack Image
+      pngurl: '/mobs/pigidle.png', // Defense Image
+      pngatk: '/mobs/pigmad.png',  // Attack Image
       stats: {
         level: 1,
         currentExp: 0,

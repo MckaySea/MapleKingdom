@@ -389,23 +389,38 @@ const handleLootDrops = useCallback(
 
     lootTable.forEach((loot) => {
       const rand = Math.random();
+      console.log(`Checking loot: ${loot.item}, Drop rate: ${loot.dropRate}, Random: ${rand}`);
       if (rand <= loot.dropRate) {
         // Find the item details from itemsList
         const item = itemsList.find((i) => i.name === loot.item);
         if (item) {
+          console.log(`Adding item to inventory: ${item.name}`);
           obtainedLoot.push(item);
-          addItemToInventory(item.id); // Add to inventory via App.js function
+          addItemToInventory(item.id); // Add to inventory
+        } else {
+          console.warn(`Item not found in itemsList: ${loot.item}`);
         }
       }
     });
 
     if (obtainedLoot.length > 0) {
-      // Set lastLoot via App.js function
+      console.log(`Loot obtained:`, obtainedLoot);
       setLastLoot(obtainedLoot);
+    } else {
+      console.log('No loot obtained.');
     }
   },
   [addItemToInventory, setLastLoot, itemsList]
 );
+
+// const addItemToInventory = (itemId) => {
+//   setInventory((prevInventory) => {
+//     const updatedInventory = [...prevInventory, itemId];
+//     console.log(`Inventory updated:`, updatedInventory);
+//     Cookies.set('inventory', JSON.stringify(updatedInventory), { expires: 7 });
+//     return updatedInventory;
+//   });
+// };
 
   // Handle skill actions
   const handleSkillAction = useCallback(

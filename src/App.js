@@ -1,5 +1,5 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect, useRef } from 'react';
 import Cookies from 'js-cookie';
 import { v4 as uuidv4 } from 'uuid';
@@ -10,9 +10,11 @@ import itemsList from './components/itemslist';
 import ExploreCanvas from './components/exploreCanvas';
 
 function App() {
-  const [currentScene, setCurrentScene] = useState('characterCreation');
+  const [currentScene, setCurrentScene] = useState(() => {
+    const savedPlayerId = Cookies.get('playerId');
+    return savedPlayerId ? 'lobby' : 'characterCreation';
+  });
   const [selectedPng, setSelectedPng] = useState(null);
-  // eslint-disable-next-line no-unused-vars
   const [selectedAtkPng, setSelectedAtkPng] = useState(null);
   const [stats, setStats] = useState(null);
   const [inventory, setInventory] = useState([]);
@@ -22,70 +24,86 @@ function App() {
   const [loading, setLoading] = useState(false);
 
   const [playerId, setPlayerId] = useState(() => {
-    const savedPlayerId = Cookies.get('playerId');
-    if (savedPlayerId) return savedPlayerId;
-
-    const newPlayerId = uuidv4();
-    Cookies.set('playerId', newPlayerId, { expires: 7 });
-    return newPlayerId;
+    return Cookies.get('playerId') || null;
   });
+
   const addItemToInventory = (itemId) => {
     setInventory((prevInventory) => {
       const updatedInventory = [...prevInventory, itemId];
-      Cookies.set('inventory', JSON.stringify(updatedInventory), { expires: 7 });
+      try {
+        Cookies.set('inventory', JSON.stringify(updatedInventory), { expires: 7 });
+      } catch (error) {
+        console.error('Failed to save inventory to cookies:', error);
+      }
       return updatedInventory;
     });
   };
+
   const equipItem = (itemId) => {
     const item = itemsList.find((itm) => itm.id === itemId);
-  
+
     if (item && item.equippable) {
       setEquipped((prevEquipped) => {
         if (prevEquipped.includes(itemId)) return prevEquipped; // Already equipped
-  
+
         const updatedEquipped = [...prevEquipped, itemId];
-  
+
         // Update stats based on item properties
         setStats((prevStats) => {
           const newStats = { ...prevStats };
-  
+
           if (item.attack) newStats.attack += item.attack;
           if (item.defense) newStats.defense += item.defense;
-  
-          Cookies.set('stats', JSON.stringify(newStats), { expires: 7 });
+
+          try {
+            Cookies.set('stats', JSON.stringify(newStats), { expires: 7 });
+          } catch (error) {
+            console.error('Failed to save stats to cookies:', error);
+          }
           return newStats;
         });
-  
-        Cookies.set('equipped', JSON.stringify(updatedEquipped), { expires: 7 });
+
+        try {
+          Cookies.set('equipped', JSON.stringify(updatedEquipped), { expires: 7 });
+        } catch (error) {
+          console.error('Failed to save equipped items to cookies:', error);
+        }
         return updatedEquipped;
       });
     }
   };
-  
+
   const unequipItem = (itemId) => {
     const item = itemsList.find((itm) => itm.id === itemId);
-  
+
     if (item && item.equippable) {
       setEquipped((prevEquipped) => {
         const updatedEquipped = prevEquipped.filter((id) => id !== itemId);
-  
+
         // Update stats based on item properties
         setStats((prevStats) => {
           const newStats = { ...prevStats };
-  
+
           if (item.attack) newStats.attack -= item.attack;
           if (item.defense) newStats.defense -= item.defense;
-  
-          Cookies.set('stats', JSON.stringify(newStats), { expires: 7 });
+
+          try {
+            Cookies.set('stats', JSON.stringify(newStats), { expires: 7 });
+          } catch (error) {
+            console.error('Failed to save stats to cookies:', error);
+          }
           return newStats;
         });
-  
-        Cookies.set('equipped', JSON.stringify(updatedEquipped), { expires: 7 });
+
+        try {
+          Cookies.set('equipped', JSON.stringify(updatedEquipped), { expires: 7 });
+        } catch (error) {
+          console.error('Failed to save equipped items to cookies:', error);
+        }
         return updatedEquipped;
       });
     }
   };
-  
 
   const audioRef = useRef(null);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(null);
@@ -133,18 +151,17 @@ function App() {
   }, [currentTrackIndex]);
 
   useEffect(() => {
-    const savedEquipped = Cookies.get('equipped');
-    if (savedEquipped) {
-      setEquipped(JSON.parse(savedEquipped));
-    } else {
-      Cookies.set('equipped', JSON.stringify([]), { expires: 7 });
+    try {
+      const savedEquipped = Cookies.get('equipped');
+      setEquipped(savedEquipped ? JSON.parse(savedEquipped) : []);
+    } catch (error) {
+      console.error('Failed to parse equipped items:', error);
+      setEquipped([]); // Fallback to default value
     }
 
-    const savedStats = Cookies.get('stats');
-    if (savedStats) {
-      setStats(JSON.parse(savedStats));
-    } else {
-      const initialStats = {
+    try {
+      const savedStats = Cookies.get('stats');
+      setStats(savedStats ? JSON.parse(savedStats) : {
         level: 1,
         currentExp: 0,
         expToLevelUp: 100,
@@ -155,31 +172,45 @@ function App() {
         dexterity: 6,
         luck: 8,
         intellect: 13,
-      };
-      setStats(initialStats);
-      Cookies.set('stats', JSON.stringify(initialStats), { expires: 7 });
+      });
+    } catch (error) {
+      console.error('Failed to parse stats:', error);
+      setStats({
+        level: 1,
+        currentExp: 0,
+        expToLevelUp: 100,
+        attack: 9,
+        defense: 8,
+        maxHp: 100,
+        agility: 9,
+        dexterity: 6,
+        luck: 8,
+        intellect: 13,
+      });
     }
 
-    const savedInventory = Cookies.get('inventory');
-    if (savedInventory) {
-      setInventory(JSON.parse(savedInventory));
-    } else {
-      Cookies.set('inventory', JSON.stringify([]), { expires: 7 });
+    try {
+      const savedInventory = Cookies.get('inventory');
+      setInventory(savedInventory ? JSON.parse(savedInventory) : []);
+    } catch (error) {
+      console.error('Failed to parse inventory:', error);
+      setInventory([]); // Fallback to empty inventory
     }
 
-    const savedPng = Cookies.get('selectedPng');
-    if (savedPng) {
-      setSelectedPng(savedPng);
-    }
+    try {
+      const savedPng = Cookies.get('selectedPng');
+      setSelectedPng(savedPng || null);
 
-    const savedAtkPng = Cookies.get('selectedAtkPng');
-    if (savedAtkPng) {
-      setSelectedAtkPng(savedAtkPng);
-    }
+      const savedAtkPng = Cookies.get('selectedAtkPng');
+      setSelectedAtkPng(savedAtkPng || null);
 
-    const savedCursor = Cookies.get('cursorPng');
-    if (savedCursor) {
-      setCursorPng(savedCursor);
+      const savedCursor = Cookies.get('cursorPng');
+      setCursorPng(savedCursor || '/hand.png');
+    } catch (error) {
+      console.error('Failed to load additional settings:', error);
+      setSelectedPng(null);
+      setSelectedAtkPng(null);
+      setCursorPng('/hand.png');
     }
   }, []);
 
@@ -188,13 +219,17 @@ function App() {
   };
 
   const handleCharacterCreation = (defenseUrl, attackUrl, generatedStats) => {
+    const newPlayerId = uuidv4();
+    setPlayerId(newPlayerId);
+    Cookies.set('playerId', newPlayerId, { expires: 7 });
+
     setSelectedPng(defenseUrl);
     setSelectedAtkPng(attackUrl);
     setStats(generatedStats);
     Cookies.set('selectedPng', defenseUrl, { expires: 7 });
     Cookies.set('selectedAtkPng', attackUrl, { expires: 7 });
     Cookies.set('stats', JSON.stringify(generatedStats), { expires: 7 });
-    
+
     setCurrentScene('lobby');
   };
 
@@ -253,20 +288,24 @@ function App() {
       {currentScene === 'characterCreation' ? (
         <CharacterCreation onCharacterCreate={handleCharacterCreation} />
       ) : currentScene === 'lobby' ? (
-<Lobby
-  stats={stats}
-  selectedPng={selectedPng}
-  inventory={inventory}
-  itemsList={itemsList}
-  onEnterBattle={handleStartBattle}
-  onEnterExplore={handleEnterExplore}
-  lastLoot={lastLoot}
-  setLastLoot={setLastLoot}
-  equipped={equipped}
-  equipItem={equipItem} // Pass equipItem
-  unequipItem={unequipItem} // Pass unequipItem
-  addItemToInventory={addItemToInventory} // Ensure addItem is passed
-/>
+        stats ? ( // Only render Lobby if stats is defined
+          <Lobby
+            stats={stats}
+            selectedPng={selectedPng}
+            inventory={inventory}
+            itemsList={itemsList}
+            onEnterBattle={handleStartBattle}
+            onEnterExplore={handleEnterExplore}
+            lastLoot={lastLoot}
+            setLastLoot={setLastLoot}
+            equipped={equipped}
+            equipItem={equipItem}
+            unequipItem={unequipItem}
+            addItemToInventory={addItemToInventory}
+          />
+        ) : (
+          <div>Loading stats...</div> // Show a loading message until stats is ready
+        )
       ) : currentScene === 'explore' ? (
         <ExploreCanvas
           selectedPng={selectedPng}
@@ -279,6 +318,8 @@ function App() {
           selectedPng={selectedPng}
           stats={stats}
           onBackToLobby={handleBackToLobby}
+          addItemToInventory={addItemToInventory}
+          setLastLoot={setLastLoot}
         />
       ) : null}
     </div>
