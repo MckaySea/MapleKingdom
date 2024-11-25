@@ -234,6 +234,20 @@ function Lobby({
         overflow: 'hidden',
       }}
     >
+      {tooltip.visible && (
+  <div
+    className="retro-tooltip"
+    style={{
+      position: 'absolute',
+      top: tooltip.position.y + 10,
+      left: tooltip.position.x,
+      transform: 'translateX(-50%)',
+    }}
+  >
+    {tooltip.content}
+  </div>
+)}
+
       {/* Canvas Section */}
       <div style={{ flex: '7 7 70%', position: 'relative' }}>
         <CanvasRenderer
@@ -482,91 +496,56 @@ function InventoryGrid({ inventory, itemsList, setTooltip, equipped, equipItem, 
       // Implement logic to use the item, e.g., remove from inventory if consumable
     }
   };
-
-  const playTooltipSound = useAudio('/sounds/hover.mp3'); // Optional: Tooltip sound
+  const handleMouseEnter = (item, e) => {
+    const rect = e.target.getBoundingClientRect();
+    playHoverSound();
+    setTooltip({
+      visible: true,
+      content: item.description,
+      position: { x: rect.left + rect.width / 2, y: rect.top },
+    });
+  };
+  const handleMouseLeave = () => {
+    setTooltip({ visible: false, content: '', position: { x: 0, y: 0 } });
+  };
+  const playHoverSound = useAudio('/sounds/hover.mp3'); // Optional: Tooltip sound
 
   return (
-    <div className="inventory-grid-container" style={{ marginBottom: '20px' }}>
-      <h2 className="inventory-title">Your Inventory</h2>
-      <div className="inventory-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, 80px)', gap: '10px' }}>
-        {items.map((item, index) => (
-          item ? (
-            <div
-              key={index}
-              className={`inventory-item ${equipped.includes(item.id) ? 'equipped' : ''}`}
-              style={{
-                position: 'relative',
-                cursor: 'pointer',
-                border: equipped.includes(item.id) ? '2px solid green' : '2px solid transparent',
-                borderRadius: '5px',
-                padding: '5px',
-                backgroundColor: '#2e2e2e',
-              }}
-              onClick={() => { if (!item.equippable) handleUseItem(item.id); }}
-              onMouseEnter={(e) => {
-                const rect = e.currentTarget.getBoundingClientRect();
-                setTooltip({
-                  visible: true,
-                  content: item.description,
-                  position: { x: rect.left + rect.width / 2, y: rect.top },
-                });
-                playTooltipSound(); // Optional: Play tooltip sound
-              }}
-              onMouseLeave={() =>
-                setTooltip({ visible: false, content: '', position: { x: 0, y: 0 } })
-              }
-            >
-              <img
-                src={item.png}
-                alt={item.name}
-                className="inventory-item-image"
-                style={{ width: '100%', height: 'auto' }}
-              />
-              <span className="inventory-item-name" style={{ fontSize: '12px', textAlign: 'center', display: 'block' }}>{item.name}</span>
-              {item.equippable && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevent triggering onClick of parent
-                    if (equipped.includes(item.id)) {
-                      unequipItem(item.id);
-                    } else {
-                      equipItem(item.id);
-                    }
-                  }}
-                  className={`equip-button ${equipped.includes(item.id) ? 'unequip' : 'equip'}`}
-                  style={{
-                    position: 'absolute',
-                    bottom: '5px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    padding: '2px 5px',
-                    fontSize: '10px',
-                    cursor: 'pointer',
-                    backgroundColor: equipped.includes(item.id) ? '#ff6347' : '#32cd32',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '3px',
-                  }}
-                >
-                  {equipped.includes(item.id) ? 'Unequip' : 'Equip'}
-                </button>
-              )}
-            </div>
-          ) : (
-            <div
-              key={index}
-              className="inventory-empty-slot"
-              style={{
-                width: '80px',
-                height: '80px',
-                backgroundColor: '#3e3e3e',
-                borderRadius: '5px',
-              }}
-            ></div>
-          )
-        ))}
-      </div>
+    <div className="inventory-grid-container">
+    <h2 className="inventory-title">Your Inventory</h2>
+    <div className="inventory-grid">
+      {items.map((item, index) => (
+        item ? (
+          <div
+            key={index}
+            className={`inventory-item ${equipped.includes(item.id) ? 'equipped' : ''}`}
+            onMouseEnter={(e) => handleMouseEnter(item, e)}
+            onMouseLeave={handleMouseLeave}
+          >
+            <img src={item.png} alt={item.name} className="inventory-item-image" />
+            <span className="inventory-item-name">{item.name}</span>
+            {item.equippable && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (equipped.includes(item.id)) {
+                    unequipItem(item.id);
+                  } else {
+                    equipItem(item.id);
+                  }
+                }}
+                className={`equip-button ${equipped.includes(item.id) ? 'unequip' : 'equip'}`}
+              >
+                {equipped.includes(item.id) ? 'Unequip' : 'Equip'}
+              </button>
+            )}
+          </div>
+        ) : (
+          <div key={index} className="inventory-empty-slot"></div>
+        )
+      ))}
     </div>
+  </div>
   );
 }
 
