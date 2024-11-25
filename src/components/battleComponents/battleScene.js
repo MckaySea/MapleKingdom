@@ -34,6 +34,8 @@ function BattleScene({
     defense: playerDefense,
     maxHp: playerMaxHp,
     agility: playerAgility,
+    dexterity: playerDex,
+    intellect: playerInt,
   } = stats;
 
   // Player HP state
@@ -109,9 +111,9 @@ const selectedAtkPng = Cookies.get("selectedAtkPng")
         name: 'Mushroom',
         image: '/sprites2/mush.png',
         attackImage: '/sprites2/mushatk.png',
-        attack: 23,
-        defense: 6,
-        maxHp: 90,
+        attack: 19,
+        defense: 7,
+        maxHp: 80,
         agility: 11,
         level: 3,
         lootTable: [
@@ -452,7 +454,9 @@ const handleLootDrops = useCallback(
         playAttackSound();
 
         setEnemyHP((prevHP) => {
-          const damage = Math.max(0, playerAttack - enemyStats.defense);
+          const adjustedAttack = playerAttack + Math.floor(playerDex / 10);
+          const damage = Math.max(0, adjustedAttack - enemyStats.defense);
+
           const newHP = Math.max(prevHP - damage, 0);
           if (newHP < prevHP) {
             playDamageSound();
@@ -467,7 +471,7 @@ const handleLootDrops = useCallback(
           }
         }, 500);
       } else if (skillName === 'Heal') {
-        setPlayerHP((prevHP) => Math.min(prevHP + 15, playerMaxHp));
+        setPlayerHP((prevHP) => Math.min(prevHP + 15 + playerInt, playerMaxHp));
         setTimeout(() => setCurrentTurn('Enemy'), 500);
       } else if (skillName === 'Defend') {
         // Implement defend functionality if needed

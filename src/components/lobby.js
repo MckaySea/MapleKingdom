@@ -366,7 +366,7 @@ function PlayerStats() {
     if (savedStats) {
       setStats(JSON.parse(savedStats));
     }
-  }, []);
+  }, [stats]);
 
   const allocateSkillPoint = (stat) => {
     if (!stats || stats.skillPoints <= 0) return;
@@ -388,12 +388,13 @@ function PlayerStats() {
     return <div>Loading stats...</div>; // Fallback if stats are not yet loaded
   }
 
-  const { skillPoints, attack, defense, maxHp, agility, currentExp } = stats;
+  const { level, skillPoints, attack, defense, maxHp, agility, currentExp, expToLevelUp } = stats;
 
   return (
     <div className="player-stats-container" style={{ marginBottom: '20px' }}>
       <h2>Player Stats</h2>
-      <h3>EXP: {currentExp}</h3>
+      <h2>Level: {level}</h2>
+      <h3>EXP: {currentExp}/{expToLevelUp} </h3>
       <p>Skill Points: {skillPoints || 0}</p>
       <div className="stats-row" style={{ display: 'flex', gap: '10px' }}>
         <p>Attack: {attack}</p>
