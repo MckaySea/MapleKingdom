@@ -11,6 +11,7 @@ import CanvasRenderer from './battleComponents/canvasRenderer';
 function Lobby({
   stats,
   selectedPng,
+  onEnterExplore,
   inventory,
   itemsList,
   onEnterBattle,
@@ -37,7 +38,7 @@ function Lobby({
 
   // Audio Hooks
   const playHoverSound = useAudio('/sounds/hover.mp3'); // ensure useAudio is correctly implemented
-
+  const playClickSound = useAudio('/sounds/clicker.mp3');
   // Effect to watch for changes in lastLoot
   useEffect(() => {
     if (lastLoot.length > 0) {
@@ -109,7 +110,15 @@ function Lobby({
       playerImageSize,
       playerImageSize
     );
-
+    drawCanvasButton(ctx, {
+      x: canvasWidth / 2 - 100,
+      y: canvasHeight / 2 + 60,
+      width: 200,
+      height: 40,
+      text: 'Explore Area',
+      isHovered: hoveredButtonRef.current === 'exploreArea',
+    });
+    
     // Draw buttons
     drawCanvasButton(ctx, {
       x: canvasWidth / 2 - 100,
@@ -154,8 +163,7 @@ function Lobby({
     const rect = canvas.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
-
-    // Handle hover over buttons
+  
     if (
       mouseX >= canvasWidth / 2 - 100 &&
       mouseX <= canvasWidth / 2 + 100 &&
@@ -164,26 +172,22 @@ function Lobby({
     ) {
       if (hoveredButtonRef.current !== 'enterBattle') {
         hoveredButtonRef.current = 'enterBattle';
-        playHoverSound(); // Play hover sound
+        playHoverSound();
       }
-    }
-    else if (
+    } else if (
       mouseX >= canvasWidth / 2 - 100 &&
-      mouseX <= canvasWidth / 2 + 200 &&
-      mouseY >= canvasHeight / 2 &&
-      mouseY <= canvasHeight / 2 + 40
+      mouseX <= canvasWidth / 2 + 100 &&
+      mouseY >= canvasHeight / 2 + 60 &&
+      mouseY <= canvasHeight / 2 + 100
     ) {
-      if (hoveredButtonRef.current !== 'collectResources') {
-        hoveredButtonRef.current = 'collectResources';
-        playHoverSound(); // Play hover sound
+      if (hoveredButtonRef.current !== 'exploreArea') {
+        hoveredButtonRef.current = 'exploreArea';
+        playHoverSound();
       }
-    } else {
-      if (hoveredButtonRef.current !== null) {
-        hoveredButtonRef.current = null;
-      }
+    
     }
   };
-
+  
   const handleMouseClick = (e) => {
     const canvas = e.target;
     const rect = canvas.getBoundingClientRect();
@@ -206,8 +210,18 @@ function Lobby({
       mouseY >= canvasHeight / 2 &&
       mouseY <= canvasHeight / 2 + 40
     ) {
+
       // Implement Collect Resources logic
       alert('Resources Collected!');
+    }
+    else if (
+      mouseX >= canvasWidth / 2 - 100 &&
+      mouseX <= canvasWidth / 2 + 100 &&
+      mouseY >= canvasHeight / 2 + 60 &&
+      mouseY <= canvasHeight / 2 + 100
+    ) {
+      playClickSound();
+      onEnterExplore(); // Call the navigation function
     }
   };
 

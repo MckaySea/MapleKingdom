@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import CanvasRenderer from './battleComponents/canvasRenderer';
 import Cookies from 'js-cookie';
@@ -16,30 +18,33 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby }) {
 
   const [otherPlayers, setOtherPlayers] = useState({});
   const [playerPng, setPlayerPng] = useState(null);
+  const [backgroundLoaded, setBackgroundLoaded] = useState(false);
 
   const backgroundImage = useRef(new Image());
 
   useEffect(() => {
-    const preloadImage = (src) => {
-      return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.src = src;
-        img.onload = () => resolve(img);
-        img.onerror = () => reject(`Failed to load image: ${src}`);
-      });
+    // Load the background image
+    backgroundImage.current.src = '/msbg.jpg';
+    backgroundImage.current.onload = () => {
+      setBackgroundLoaded(true); // Set to true once the image is loaded
     };
-
-    const loadBackgroundImage = async () => {
-      try {
-        backgroundImage.current = await preloadImage('/msbg.jpg');
-        console.log('Background image loaded');
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    loadBackgroundImage();
   }, []);
+
+  useEffect(() => {
+    const preloadPlayerImages = () => {
+      const images = {};
+      Object.values(otherPlayers).forEach((player) => {
+        if (!images[player.png]) {
+          const img = new Image();
+          img.src = player.png; // Dynamically set sprite based on player.png
+          images[player.png] = img;
+        }
+      });
+      return images;
+    };
+
+    preloadPlayerImages();
+  }, [otherPlayers]);
 
   useEffect(() => {
     // Get the selected PNG from cookies
@@ -61,10 +66,6 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby }) {
           id: playerId,
           png: pngFromCookie,
           level: playerLevel,
-          position: {
-            x: Math.random() * (canvasWidth - 100),
-            y: Math.random() * (canvasHeight - 100),
-          },
         })
       );
     };
@@ -72,20 +73,17 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby }) {
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
 
-      if (data.type === 'playerJoined' || data.type === 'playerUpdated') {
+      if (data.type === 'playerJoined') {
         setOtherPlayers((prev) => ({
           ...prev,
           [data.player.id]: {
             ...data.player,
-            position: data.player.position || {
-              x: Math.random() * (canvasWidth - 100),
-              y: Math.random() * (canvasHeight - 100),
-            },
+            x: Math.random() * canvasWidth,
+            y: Math.random() * canvasHeight,
             dx: (Math.random() - 0.5) * 2,
             dy: (Math.random() - 0.5) * 2,
           },
         }));
-        console.log('Player joined/updated:', data.player);
       }
 
       if (data.type === 'playerLeft') {
@@ -94,24 +92,20 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby }) {
           delete updatedPlayers[data.id];
           return updatedPlayers;
         });
-        console.log(`Player left: ${data.id}`);
       }
 
       if (data.type === 'allPlayers') {
         const playersWithMovement = Object.keys(data.players).reduce((acc, id) => {
           acc[id] = {
             ...data.players[id],
-            position: data.players[id].position || {
-              x: Math.random() * (canvasWidth - 100),
-              y: Math.random() * (canvasHeight - 100),
-            },
+            x: Math.random() * canvasWidth,
+            y: Math.random() * canvasHeight,
             dx: (Math.random() - 0.5) * 2,
             dy: (Math.random() - 0.5) * 2,
           };
           return acc;
         }, {});
         setOtherPlayers(playersWithMovement);
-        console.log('All players received:', playersWithMovement);
       }
     };
 
@@ -126,7 +120,7 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby }) {
     return () => {
       ws.close();
     };
-  }, [playerId, playerLevel, canvasWidth, canvasHeight]);
+  }, [playerId, playerLevel]);
 
   // Update player positions at regular intervals
   useEffect(() => {
@@ -134,13 +128,8 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby }) {
       setOtherPlayers((prev) =>
         Object.keys(prev).reduce((acc, id) => {
           const player = prev[id];
-
-          if (!player.position) {
-            return acc; // Skip if position is undefined
-          }
-
-          let newX = player.position.x + player.dx;
-          let newY = player.position.y + player.dy;
+          let newX = player.x + player.dx;
+          let newY = player.y + player.dy;
 
           // Bounce off canvas edges
           if (newX < 0 || newX > canvasWidth - 100) player.dx *= -1;
@@ -148,10 +137,8 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby }) {
 
           acc[id] = {
             ...player,
-            position: {
-              x: Math.max(0, Math.min(canvasWidth - 100, newX)),
-              y: Math.max(0, Math.min(canvasHeight - 100, newY)),
-            },
+            x: Math.max(0, Math.min(canvasWidth - 100, newX)),
+            y: Math.max(0, Math.min(canvasHeight - 100, newY)),
           };
           return acc;
         }, {})
@@ -161,25 +148,41 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby }) {
     return () => clearInterval(interval);
   }, [canvasWidth, canvasHeight]);
 
+  const preloadPlayerImages = () => {
+    const images = {};
+    Object.values(otherPlayers).forEach((player) => {
+      if (!images[player.png]) {
+        const img = new Image();
+        img.src = player.png; // Dynamically set sprite based on player.png
+        images[player.png] = img;
+      }
+    });
+    return images;
+  };
+
   const draw = useCallback(
     (ctx) => {
+      if (!backgroundLoaded) return; // Only draw if the background is loaded
+
       ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+      // Draw the background image
       ctx.drawImage(backgroundImage.current, 0, 0, canvasWidth, canvasHeight);
+
+      const playerImages = preloadPlayerImages();
 
       // Render all other players' PNGs moving around the canvas
       Object.values(otherPlayers).forEach((player) => {
-        if (!player.position || !player.png) return; // Skip if position or PNG is undefined
+        let img = playerImages[player.png] || new Image();
 
-        const img = new Image();
-        img.src = player.png; // Use the actual player.png sent from the server
+        if (img.complete && img.naturalWidth > 0) {
+          ctx.drawImage(img, player.x, player.y, 100, 100); // Use player's coordinates
+        }
 
-        img.onload = () => {
-          ctx.drawImage(img, player.position.x, player.position.y, 100, 100);
-        };
-
-        ctx.fillStyle = 'white';
-        ctx.font = '12px Arial';
-        ctx.fillText(`Lv ${player.level}`, player.position.x + 50, player.position.y - 10);
+        // Draw player level
+        ctx.fillStyle = 'red';
+        ctx.font = '22px Arial';
+        ctx.fillText(`Lv ${player.level}`, player.x + 50, player.y - 10);
       });
 
       // Draw the "Back to Lobby" button
@@ -190,7 +193,7 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby }) {
       ctx.textAlign = 'center';
       ctx.fillText('Back to Lobby', 85, 30);
     },
-    [otherPlayers, canvasWidth, canvasHeight]
+    [otherPlayers, canvasWidth, canvasHeight, backgroundLoaded]
   );
 
   const handleMouseClick = (e) => {

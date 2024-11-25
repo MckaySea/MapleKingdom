@@ -1,11 +1,13 @@
-// src/App.js
-
-import React, { useState, useEffect } from 'react';
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable no-unused-vars */
+import React, { useState, useEffect, useRef } from 'react';
 import Cookies from 'js-cookie';
+import { v4 as uuidv4 } from 'uuid';
 import CharacterCreation from './components/charCreation';
 import BattleScene from './components/battleComponents/battleScene';
 import Lobby from './components/lobby';
 import itemsList from './components/itemslist';
+import ExploreCanvas from './components/exploreCanvas';
 
 function App() {
   const [currentScene, setCurrentScene] = useState('characterCreation');
@@ -19,9 +21,61 @@ function App() {
   const [cursorPng, setCursorPng] = useState('/hand.png');
   const [loading, setLoading] = useState(false);
 
-  // Initialize cookies
+  const [playerId, setPlayerId] = useState(() => {
+    const savedPlayerId = Cookies.get('playerId');
+    if (savedPlayerId) return savedPlayerId;
+
+    const newPlayerId = uuidv4();
+    Cookies.set('playerId', newPlayerId, { expires: 7 });
+    return newPlayerId;
+  });
+
+  const audioRef = useRef(null);
+  const [currentTrackIndex, setCurrentTrackIndex] = useState(null);
+  const songs = [
+    '/music/mstheme.mp3',
+    '/music/westofhene.mp3',
+    '/music/henemusic.mp3',
+  ];
+
   useEffect(() => {
-    // Initialize Equipped
+    const startAudio = () => {
+      if (audioRef.current) {
+        playRandomTrack();
+        audioRef.current.play().catch((error) => {
+          console.warn('Audio playback failed:', error);
+        });
+      }
+    };
+
+    window.addEventListener('click', startAudio, { once: true });
+    return () => window.removeEventListener('click', startAudio);
+  }, []);
+
+  const playRandomTrack = () => {
+    const randomIndex = Math.floor(Math.random() * songs.length);
+    setCurrentTrackIndex(randomIndex);
+  };
+
+  const handleTrackEnd = () => {
+    playRandomTrack();
+    if (audioRef.current) {
+      audioRef.current.play().catch((error) => {
+        console.warn('Failed to play next track:', error);
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (audioRef.current && currentTrackIndex !== null) {
+      audioRef.current.src = songs[currentTrackIndex];
+      audioRef.current.play().catch((error) => {
+        console.warn('Failed to play selected track:', error);
+      });
+    }
+  }, [currentTrackIndex]);
+
+  useEffect(() => {
     const savedEquipped = Cookies.get('equipped');
     if (savedEquipped) {
       setEquipped(JSON.parse(savedEquipped));
@@ -29,7 +83,6 @@ function App() {
       Cookies.set('equipped', JSON.stringify([]), { expires: 7 });
     }
 
-    // Initialize Stats
     const savedStats = Cookies.get('stats');
     if (savedStats) {
       setStats(JSON.parse(savedStats));
@@ -50,7 +103,6 @@ function App() {
       Cookies.set('stats', JSON.stringify(initialStats), { expires: 7 });
     }
 
-    // Initialize Inventory
     const savedInventory = Cookies.get('inventory');
     if (savedInventory) {
       setInventory(JSON.parse(savedInventory));
@@ -58,7 +110,6 @@ function App() {
       Cookies.set('inventory', JSON.stringify([]), { expires: 7 });
     }
 
-    // Initialize Selected PNGs
     const savedPng = Cookies.get('selectedPng');
     if (savedPng) {
       setSelectedPng(savedPng);
@@ -69,14 +120,16 @@ function App() {
       setSelectedAtkPng(savedAtkPng);
     }
 
-    // Initialize Cursor PNG
     const savedCursor = Cookies.get('cursorPng');
     if (savedCursor) {
       setCursorPng(savedCursor);
     }
   }, []);
 
-  // Function to handle character creation
+  const handleEnterExplore = () => {
+    setCurrentScene('explore');
+  };
+
   const handleCharacterCreation = (defenseUrl, attackUrl, generatedStats) => {
     setSelectedPng(defenseUrl);
     setSelectedAtkPng(attackUrl);
@@ -84,15 +137,14 @@ function App() {
     Cookies.set('selectedPng', defenseUrl, { expires: 7 });
     Cookies.set('selectedAtkPng', attackUrl, { expires: 7 });
     Cookies.set('stats', JSON.stringify(generatedStats), { expires: 7 });
+    
     setCurrentScene('lobby');
   };
 
-  // Navigate to battle
   const handleStartBattle = () => {
     setCurrentScene('battle');
   };
 
-  // Return to lobby
   const handleBackToLobby = () => {
     setLoading(true);
     const savedStats = Cookies.get('stats');
@@ -130,87 +182,18 @@ function App() {
     setCurrentScene('lobby');
   };
 
-  // Add an item to inventory
-  const addItemToInventory = (itemId) => {
-    const item = itemsList.find(itm => itm.id === itemId);
-    if (item) {
-      const updatedInventory = [...inventory, item.id];
-      setInventory(updatedInventory);
-      Cookies.set('inventory', JSON.stringify(updatedInventory), { expires: 7 });
-    }
-  };
-
-  // Equip item function
-  const equipItem = (itemId) => {
-    const item = itemsList.find(itm => itm.id === itemId && itm.equippable);
-    if (item) {
-      // Check if an item of the same type is already equipped
-      const currentlyEquippedSameType = equipped.find(eqId => {
-        const eqItem = itemsList.find(itm => itm.id === eqId);
-        return eqItem && eqItem.type === item.type;
-      });
-
-      if (currentlyEquippedSameType) {
-        // Unequip the currently equipped item of the same type
-        unequipItem(currentlyEquippedSameType);
-      }
-
-      if (!equipped.includes(itemId)) {
-        const newEquipped = [...equipped, itemId];
-        setEquipped(newEquipped);
-        Cookies.set('equipped', JSON.stringify(newEquipped), { expires: 7 });
-
-        // Update stats
-        updateStats(item, 'equip');
-      }
-    }
-  };
-
-  // Unequip item function
-  const unequipItem = (itemId) => {
-    const item = itemsList.find(itm => itm.id === itemId && itm.equippable);
-    if (item && equipped.includes(itemId)) {
-      const newEquipped = equipped.filter(id => id !== itemId);
-      setEquipped(newEquipped);
-      Cookies.set('equipped', JSON.stringify(newEquipped), { expires: 7 });
-
-      // Update stats
-      updateStats(item, 'unequip');
-    }
-  };
-
-  // Update stats
-  const updateStats = (item, action) => {
-    const multiplier = action === 'equip' ? 1 : -1;
-    const currentStats = JSON.parse(Cookies.get('stats') || '{}');
-
-    const updatedStats = {
-      ...currentStats,
-      attack: (currentStats.attack || 0) + (item.attack || 0) * multiplier,
-      defense: (currentStats.defense || 0) + (item.defense || 0) * multiplier,
-      maxHp: (currentStats.maxHp || 0) + (item.maxHp || 0) * multiplier,
-      agility: (currentStats.agility || 0) + (item.agility || 0) * multiplier,
-      intellect: (currentStats.intellect || 0) + (item.intellect || 0) * multiplier,
-      dexterity: (currentStats.dexterity || 0) + (item.dexterity || 0) * multiplier,
-      luck: (currentStats.luck || 0) + (item.luck || 0) * multiplier,
-      // Add other stats as needed
-    };
-
-    setStats(updatedStats);
-    Cookies.set('stats', JSON.stringify(updatedStats), { expires: 7 });
-  };
-
   return (
     <div
-      className="min-h-screen flex items-center justify-center bg-gradient-to-r from-purple-700 via-pink-600 to-indigo-600 text-white"
       style={{
-        cursor: cursorPng ? `url(${cursorPng}), auto` : 'default',
+        cursor: `url(${cursorPng}), auto`,
       }}
     >
-      <audio src="/music/mstheme.mp3" autoPlay loop />
-      {loading ? (
-        <div>Loading...</div>
-      ) : currentScene === 'characterCreation' ? (
+      <audio
+        ref={audioRef}
+        onEnded={handleTrackEnd}
+        style={{ display: 'none' }}
+      />
+      {currentScene === 'characterCreation' ? (
         <CharacterCreation onCharacterCreate={handleCharacterCreation} />
       ) : currentScene === 'lobby' ? (
         <Lobby
@@ -219,21 +202,23 @@ function App() {
           inventory={inventory}
           itemsList={itemsList}
           onEnterBattle={handleStartBattle}
-          addItemToInventory={addItemToInventory}
+          onEnterExplore={handleEnterExplore}
           lastLoot={lastLoot}
           setLastLoot={setLastLoot}
           equipped={equipped}
-          equipItem={equipItem}
-          unequipItem={unequipItem}
+        />
+      ) : currentScene === 'explore' ? (
+        <ExploreCanvas
+          selectedPng={selectedPng}
+          playerId={playerId}
+          playerLevel={stats?.level || 1}
+          onBackToLobby={() => setCurrentScene('lobby')}
         />
       ) : currentScene === 'battle' ? (
         <BattleScene
           selectedPng={selectedPng}
           stats={stats}
           onBackToLobby={handleBackToLobby}
-          
-          addItemToInventory={addItemToInventory}
-          setLastLoot={setLastLoot}
         />
       ) : null}
     </div>
