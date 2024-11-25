@@ -7,42 +7,76 @@ import BattleScene from './components/battleComponents/battleScene';
 import Lobby from './components/lobby';
 import itemsList from './components/itemslist';
 
-
 function App() {
   const [currentScene, setCurrentScene] = useState('characterCreation');
-  const [selectedPng, setSelectedPng] = useState(null);        // Defense Image
-  const [selectedAtkPng, setSelectedAtkPng] = useState(null);  // Attack Image
+  const [selectedPng, setSelectedPng] = useState(null);
+  // eslint-disable-next-line no-unused-vars
+  const [selectedAtkPng, setSelectedAtkPng] = useState(null);
   const [stats, setStats] = useState(null);
-  const [inventory, setInventory] = useState([]); // Initialize inventory
-  const [lastLoot, setLastLoot] = useState([]); // State to track last loot
-  const [cursorPng, setCursorPng] = useState('/hand.png'); // Default cursor
-  const [loading, setLoading] = useState(false); // Loading state
+  const [inventory, setInventory] = useState([]);
+  const [equipped, setEquipped] = useState([]);
+  const [lastLoot, setLastLoot] = useState([]);
+  const [cursorPng, setCursorPng] = useState('/hand.png');
+  const [loading, setLoading] = useState(false);
 
-  // Load saved data from cookies on mount
+  // Initialize cookies
   useEffect(() => {
-    const savedPng = Cookies.get('selectedPng');
-    const savedAtkPng = Cookies.get('selectedAtkPng'); // Retrieve attack PNG
-    const savedStats = Cookies.get('stats');
-    const savedCursor = Cookies.get('cursorPng');
-    const savedInventory = Cookies.get('inventory');
-
-    if (savedPng && savedAtkPng && savedStats) { // Ensure all are present
-      setSelectedPng(savedPng);
-      setSelectedAtkPng(savedAtkPng);
-      setStats(JSON.parse(savedStats));
-      setCurrentScene('lobby'); // Navigate to lobby if character exists
+    // Initialize Equipped
+    const savedEquipped = Cookies.get('equipped');
+    if (savedEquipped) {
+      setEquipped(JSON.parse(savedEquipped));
+    } else {
+      Cookies.set('equipped', JSON.stringify([]), { expires: 7 });
     }
 
+    // Initialize Stats
+    const savedStats = Cookies.get('stats');
+    if (savedStats) {
+      setStats(JSON.parse(savedStats));
+    } else {
+      const initialStats = {
+        level: 1,
+        currentExp: 0,
+        expToLevelUp: 100,
+        attack: 9,
+        defense: 8,
+        maxHp: 100,
+        agility: 9,
+        dexterity: 6,
+        luck: 8,
+        intellect: 13,
+      };
+      setStats(initialStats);
+      Cookies.set('stats', JSON.stringify(initialStats), { expires: 7 });
+    }
+
+    // Initialize Inventory
+    const savedInventory = Cookies.get('inventory');
+    if (savedInventory) {
+      setInventory(JSON.parse(savedInventory));
+    } else {
+      Cookies.set('inventory', JSON.stringify([]), { expires: 7 });
+    }
+
+    // Initialize Selected PNGs
+    const savedPng = Cookies.get('selectedPng');
+    if (savedPng) {
+      setSelectedPng(savedPng);
+    }
+
+    const savedAtkPng = Cookies.get('selectedAtkPng');
+    if (savedAtkPng) {
+      setSelectedAtkPng(savedAtkPng);
+    }
+
+    // Initialize Cursor PNG
+    const savedCursor = Cookies.get('cursorPng');
     if (savedCursor) {
       setCursorPng(savedCursor);
     }
-
-    if (savedInventory) {
-      setInventory(JSON.parse(savedInventory));
-    }
   }, []);
 
-  // Handle character creation
+  // Function to handle character creation
   const handleCharacterCreation = (defenseUrl, attackUrl, generatedStats) => {
     setSelectedPng(defenseUrl);
     setSelectedAtkPng(attackUrl);
@@ -53,102 +87,153 @@ function App() {
     setCurrentScene('lobby');
   };
 
-  // Navigate to battle scene
+  // Navigate to battle
   const handleStartBattle = () => {
     setCurrentScene('battle');
   };
 
-  // Return to lobby from battle
+  // Return to lobby
   const handleBackToLobby = () => {
-    setLoading(true); // Start loading
+    setLoading(true);
     const savedStats = Cookies.get('stats');
     const savedPng = Cookies.get('selectedPng');
-    const savedAtkPng = Cookies.get('selectedAtkPng'); // Retrieve attack PNG
+    const savedAtkPng = Cookies.get('selectedAtkPng');
     const savedCursor = Cookies.get('cursorPng');
     const savedInventory = Cookies.get('inventory');
+    const savedEquipped = Cookies.get('equipped');
 
     if (savedStats) {
-      setStats(JSON.parse(savedStats)); // Update stats from cookies
+      setStats(JSON.parse(savedStats));
     }
 
     if (savedPng) {
-      setSelectedPng(savedPng); // Update selected PNG from cookies
+      setSelectedPng(savedPng);
     }
 
     if (savedAtkPng) {
-      setSelectedAtkPng(savedAtkPng); // Update attack PNG from cookies
+      setSelectedAtkPng(savedAtkPng);
     }
 
     if (savedCursor) {
-      setCursorPng(savedCursor); // Update cursor PNG from cookies
+      setCursorPng(savedCursor);
     }
 
     if (savedInventory) {
       setInventory(JSON.parse(savedInventory));
     }
 
-    setLoading(false); // Stop loading
-    setCurrentScene('lobby'); // Switch to the lobby
+    if (savedEquipped) {
+      setEquipped(JSON.parse(savedEquipped));
+    }
+
+    setLoading(false);
+    setCurrentScene('lobby');
   };
 
-  // Update player stats
-
-
-  // Add an item to the inventory
-  const addItemToInventory = (item) => { // Accept entire item object
-    setInventory((prevInventory) => {
-      const updatedInventory = [...prevInventory, item];
+  // Add an item to inventory
+  const addItemToInventory = (itemId) => {
+    const item = itemsList.find(itm => itm.id === itemId);
+    if (item) {
+      const updatedInventory = [...inventory, item.id];
+      setInventory(updatedInventory);
       Cookies.set('inventory', JSON.stringify(updatedInventory), { expires: 7 });
-      return updatedInventory;
-    });
+    }
   };
 
-  // Remove an item from the inventory (Optional)
-  // const removeItemFromInventory = (itemId) => {
-  //   setInventory((prevInventory) => {
-  //     const index = prevInventory.findIndex(item => item.id === itemId);
-  //     if (index > -1) {
-  //       const updatedInventory = [...prevInventory];
-  //       updatedInventory.splice(index, 1);
-  //       Cookies.set('inventory', JSON.stringify(updatedInventory), { expires: 7 });
-  //       return updatedInventory;
-  //     }
-  //     return prevInventory;
-  //   });
-  // };
+  // Equip item function
+  const equipItem = (itemId) => {
+    const item = itemsList.find(itm => itm.id === itemId && itm.equippable);
+    if (item) {
+      // Check if an item of the same type is already equipped
+      const currentlyEquippedSameType = equipped.find(eqId => {
+        const eqItem = itemsList.find(itm => itm.id === eqId);
+        return eqItem && eqItem.type === item.type;
+      });
+
+      if (currentlyEquippedSameType) {
+        // Unequip the currently equipped item of the same type
+        unequipItem(currentlyEquippedSameType);
+      }
+
+      if (!equipped.includes(itemId)) {
+        const newEquipped = [...equipped, itemId];
+        setEquipped(newEquipped);
+        Cookies.set('equipped', JSON.stringify(newEquipped), { expires: 7 });
+
+        // Update stats
+        updateStats(item, 'equip');
+      }
+    }
+  };
+
+  // Unequip item function
+  const unequipItem = (itemId) => {
+    const item = itemsList.find(itm => itm.id === itemId && itm.equippable);
+    if (item && equipped.includes(itemId)) {
+      const newEquipped = equipped.filter(id => id !== itemId);
+      setEquipped(newEquipped);
+      Cookies.set('equipped', JSON.stringify(newEquipped), { expires: 7 });
+
+      // Update stats
+      updateStats(item, 'unequip');
+    }
+  };
+
+  // Update stats
+  const updateStats = (item, action) => {
+    const multiplier = action === 'equip' ? 1 : -1;
+    const currentStats = JSON.parse(Cookies.get('stats') || '{}');
+
+    const updatedStats = {
+      ...currentStats,
+      attack: (currentStats.attack || 0) + (item.attack || 0) * multiplier,
+      defense: (currentStats.defense || 0) + (item.defense || 0) * multiplier,
+      maxHp: (currentStats.maxHp || 0) + (item.maxHp || 0) * multiplier,
+      agility: (currentStats.agility || 0) + (item.agility || 0) * multiplier,
+      intellect: (currentStats.intellect || 0) + (item.intellect || 0) * multiplier,
+      dexterity: (currentStats.dexterity || 0) + (item.dexterity || 0) * multiplier,
+      luck: (currentStats.luck || 0) + (item.luck || 0) * multiplier,
+      // Add other stats as needed
+    };
+
+    setStats(updatedStats);
+    Cookies.set('stats', JSON.stringify(updatedStats), { expires: 7 });
+  };
 
   return (
     <div
       className="min-h-screen flex items-center justify-center bg-gradient-to-r from-purple-700 via-pink-600 to-indigo-600 text-white"
       style={{
-        cursor: cursorPng ? `url(${cursorPng}), auto` : 'default', // Set custom cursor
+        cursor: cursorPng ? `url(${cursorPng}), auto` : 'default',
       }}
     >
       <audio src="/music/mstheme.mp3" autoPlay loop />
       {loading ? (
-        <div>Loading...</div> // Display loading indicator
+        <div>Loading...</div>
       ) : currentScene === 'characterCreation' ? (
         <CharacterCreation onCharacterCreate={handleCharacterCreation} />
       ) : currentScene === 'lobby' ? (
         <Lobby
           stats={stats}
           selectedPng={selectedPng}
-          selectedAtkPng={selectedAtkPng} // Pass attack PNG to Lobby
           inventory={inventory}
-          itemsList={itemsList} // Pass items list to Lobby
+          itemsList={itemsList}
           onEnterBattle={handleStartBattle}
-          addItemToInventory={addItemToInventory} // Pass add item function
-          lastLoot={lastLoot} // Pass lastLoot to Lobby
-          setLastLoot={setLastLoot} // Pass setLastLoot to Lobby
+          addItemToInventory={addItemToInventory}
+          lastLoot={lastLoot}
+          setLastLoot={setLastLoot}
+          equipped={equipped}
+          equipItem={equipItem}
+          unequipItem={unequipItem}
         />
       ) : currentScene === 'battle' ? (
         <BattleScene
           selectedPng={selectedPng}
-          selectedAtkPng={selectedAtkPng} // Pass attack PNG to BattleScene
           stats={stats}
           onBackToLobby={handleBackToLobby}
-          addItemToInventory={addItemToInventory} // Pass addItemToInventory to BattleScene
-          setLastLoot={setLastLoot} // Pass setLastLoot to BattleScene
+          
+          addItemToInventory={addItemToInventory}
+          setLastLoot={setLastLoot}
         />
       ) : null}
     </div>

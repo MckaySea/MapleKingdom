@@ -1,20 +1,25 @@
 // src/components/lobby.js
+
+/* eslint-disable no-unused-vars */
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import useAudio from './battleComponents/useAudio';
 import '../App.css';
-
+import Cookies from 'js-cookie';
 import CanvasRenderer from './battleComponents/canvasRenderer';
 
 function Lobby({
   stats,
   selectedPng,
-  selectedAtkPng,
   inventory,
   itemsList,
   onEnterBattle,
   addItemToInventory,
   lastLoot,
   setLastLoot,
+  equipped,          // Receive equipped state
+  equipItem,         // Receive equipItem function
+  unequipItem,       // Receive unequipItem function
 }) {
   const canvasWidth = window.innerWidth * 0.7;
   const canvasHeight = window.innerHeight;
@@ -29,6 +34,9 @@ function Lobby({
     content: '',
     position: { x: 0, y: 0 },
   });
+
+  // Audio Hooks
+  const playHoverSound = useAudio('/sounds/hover.mp3'); // ensure useAudio is correctly implemented
 
   // Effect to watch for changes in lastLoot
   useEffect(() => {
@@ -46,35 +54,17 @@ function Lobby({
     setLastLoot([]); // Reset lastLoot after closing the modal
   };
 
-  // Player stats destructuring
-  const {
-    level,
-    // currentExp,
-    // expToLevelUp,
-    // attack,
-    // defense,
-    // maxHp,
-    // agility,
-    // dexterity,
-    // luck,
-  } = stats;
-
   // Define minimum and maximum sizes
   const playerMinSize = 25; // Smaller size at level 1
   const playerMaxSize = 150; // Maximum size at higher levels
   const playerMaxLevel = 50; // Level at which the size caps
-  const playHoverSound = useAudio('/sounds/hover.mp3');
 
   // Calculate player image size based on level
   const playerImageSize = useMemo(() => {
     const sizeIncrement = (playerMaxSize - playerMinSize) / (playerMaxLevel - 1);
-    const size = playerMinSize + sizeIncrement * (level - 1);
+    const size = playerMinSize + sizeIncrement * (stats.level - 1);
     return Math.min(size, playerMaxSize); // Ensure size doesn't exceed maxSize
-  }, [level]);
-
-  // Audio hooks
-  // const playHoverSound = useAudio('/sounds/hover.mp3');
-  // const playClickSound = useAudio('/sounds/clicker.mp3');
+  }, [stats.level]);
 
   // Background and character images
   const background = useRef(new Image());
@@ -82,18 +72,15 @@ function Lobby({
   // const characterAttackImage = useRef(new Image()); // Ref for attack image
   const frameCount = useRef(0);
 
-  background.current.src = '/msbg.jpg'; // Retro-style lobby background image
-  characterImage.current.src = selectedPng; // Character defense PNG
-  // characterAttackImage.current.src = selectedAtkPng; // Character attack PNG
+  useEffect(() => {
+    background.current.src = '/msbg.jpg'; // Retro-style lobby background image
+    characterImage.current.src = selectedPng; // Character defense PNG
 
-  // Handle image load errors
-  characterImage.current.onerror = () => {
-    characterImage.current.src = selectedPng; // Fallback image
-  };
-
-  // characterAttackImage.current.onerror = () => {
-  //   characterAttackImage.current.src = selectedAtkPng; // Fallback image
-  // };
+    // Handle image load errors
+    characterImage.current.onerror = () => {
+      characterImage.current.src = selectedPng; // Fallback image
+    };
+  }, [selectedPng]);
 
   // Button hover state
   const hoveredButtonRef = useRef(null);
@@ -123,19 +110,6 @@ function Lobby({
       playerImageSize
     );
 
-    // Draw character attack image (e.g., overlay or side position)
-    // const attackImageSize = playerImageSize * 0.6; // Smaller size for attack
-    // const attackX = characterX + playerImageSize - attackImageSize / 2;
-    // const attackY = characterY - attackImageSize / 2;
-
-    // ctx.drawImage(
-    //   characterAttackImage.current,
-    //   attackX,
-    //   attackY,
-    //   attackImageSize,
-    //   attackImageSize
-    // );
-
     // Draw buttons
     drawCanvasButton(ctx, {
       x: canvasWidth / 2 - 100,
@@ -152,7 +126,7 @@ function Lobby({
       width: 300,
       height: 40,
       text: 'Collect Resources',
-      isHovered: hoveredButtonRef.current === 'quitGame',
+      isHovered: hoveredButtonRef.current === 'collectResources',
     });
 
     // Increment frame count for animation
@@ -189,20 +163,19 @@ function Lobby({
       mouseY <= canvasHeight / 2 - 20
     ) {
       if (hoveredButtonRef.current !== 'enterBattle') {
-        
         hoveredButtonRef.current = 'enterBattle';
-         playHoverSound(); // Uncomment if using sound
+        playHoverSound(); // Play hover sound
       }
     }
     else if (
       mouseX >= canvasWidth / 2 - 100 &&
-      mouseX <= canvasWidth / 2 + 100 &&
+      mouseX <= canvasWidth / 2 + 200 &&
       mouseY >= canvasHeight / 2 &&
       mouseY <= canvasHeight / 2 + 40
     ) {
-      if (hoveredButtonRef.current !== 'quitGame') {
-        hoveredButtonRef.current = 'quitGame';
-         playHoverSound(); // Uncomment if using sound
+      if (hoveredButtonRef.current !== 'collectResources') {
+        hoveredButtonRef.current = 'collectResources';
+        playHoverSound(); // Play hover sound
       }
     } else {
       if (hoveredButtonRef.current !== null) {
@@ -224,22 +197,18 @@ function Lobby({
       mouseY >= canvasHeight / 2 - 60 &&
       mouseY <= canvasHeight / 2 - 20
     ) {
-      // playClickSound(); // Uncomment if using sound
       onEnterBattle(); // Trigger battle scene
     }
-    // Quit Game button
+    // Collect Resources button
     else if (
       mouseX >= canvasWidth / 2 - 100 &&
-      mouseX <= canvasWidth / 2 + 100 &&
+      mouseX <= canvasWidth / 2 + 200 &&
       mouseY >= canvasHeight / 2 &&
       mouseY <= canvasHeight / 2 + 40
     ) {
-      // playClickSound(); // Uncomment if using sound
-      alert('Thanks for playing!');
+      // Implement Collect Resources logic
+      alert('Resources Collected!');
     }
-
-    // Optionally, handle clicks on inventory items here
-    // For example, using or equipping items
   };
 
   return (
@@ -279,30 +248,50 @@ function Lobby({
       >
         <h1 className="inventory-title">Welcome to the Lobby!</h1>
         {/* Display Player Stats */}
-        <PlayerStats selectedPng={selectedPng} selectedAtkPng={selectedAtkPng} stats={stats} />
+        <PlayerStats stats={stats} />
+
+        {/* Display Equipped Items */}
+        <EquippedItems
+          equipped={equipped}
+          itemsList={itemsList}
+          unequipItem={unequipItem}
+        />
 
         {/* Display Inventory */}
         <InventoryGrid
           inventory={inventory}
           itemsList={itemsList}
           setTooltip={setTooltip}
+          equipped={equipped}
+          equipItem={equipItem}
+          unequipItem={unequipItem}
         />
 
         {/* Enter Battle Button */}
         <button
           onClick={onEnterBattle}
           className="enter-battle-button"
+          style={{
+            padding: '10px 20px',
+            marginTop: '10px',
+            cursor: 'pointer',
+            backgroundColor: '#ff6347',
+            color: 'white',
+            border: 'none',
+            borderRadius: '5px',
+            fontSize: '16px',
+          }}
         >
           Enter Battle
         </button>
 
         {/* Manage Inventory Buttons */}
-        <div className="manage-inventory-buttons">
-          <button onClick={() => addItemToInventory(1)}>Add Health Potion</button>
-          <button onClick={() => addItemToInventory(2)}>Add Mana Potion</button>
-          <button onClick={() => addItemToInventory(3)}>Add Sword</button>
-          <button onClick={() => addItemToInventory(4)}>Add Shield</button>
-          <button onClick={() => addItemToInventory(5)}>Add Magic Scroll</button>
+        <div className="manage-inventory-buttons" style={{ marginTop: '20px' }}>
+          <button onClick={() => addItemToInventory(1)} style={manageButtonStyle}>Add Health Potion</button>
+          <button onClick={() => addItemToInventory(2)} style={manageButtonStyle}>Add Mana Potion</button>
+          <button onClick={() => addItemToInventory(3)} style={manageButtonStyle}>Add Maple Staff</button>
+          <button onClick={() => addItemToInventory(4)} style={manageButtonStyle}>Add Maple Shield</button>
+          <button onClick={() => addItemToInventory(5)} style={manageButtonStyle}>Add Gold Coin</button>
         </div>
 
         {/* Loot Modal */}
@@ -318,8 +307,16 @@ function Lobby({
           <div
             className="retro-tooltip"
             style={{
+              position: 'absolute',
               top: tooltip.position.y + 10, // Slight offset
               left: tooltip.position.x + 10,
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              padding: '5px 10px',
+              borderRadius: '5px',
+              pointerEvents: 'none',
+              zIndex: 1000,
+              color: 'white',
+              fontSize: '12px',
             }}
           >
             {tooltip.content}
@@ -330,35 +327,26 @@ function Lobby({
   );
 }
 
-// Sub-components
+// Styles for manage inventory buttons
+const manageButtonStyle = {
+  padding: '5px 10px',
+  margin: '5px 0',
+  cursor: 'pointer',
+  backgroundColor: '#32cd32',
+  color: 'white',
+  border: 'none',
+  borderRadius: '5px',
+  fontSize: '14px',
+};
 
 // PlayerStats Component
-function PlayerStats({ selectedPng, selectedAtkPng, stats }) {
+function PlayerStats({ stats }) {
+  if (!stats) {
+    return <div>Loading stats...</div>; // Fallback if stats are not yet loaded
+  }
+
   return (
     <div className="player-stats-container" style={{ marginBottom: '20px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-        <img
-          src={selectedPng}
-          alt="Player Defense"
-          className="player-image mr-4"
-          style={{
-            width: '100px', // Adjust as needed
-            height: '100px',
-            objectFit: 'contain',
-          }}
-        />
-        {/* Uncomment if you want to display attack image */}
-        {/* <img
-          src={selectedAtkPng}
-          alt="Player Attack"
-          className="player-attack-image sway-animation"
-          style={{
-            width: '80px',
-            height: '80px',
-            objectFit: 'contain',
-          }}
-        /> */}
-      </div>
       <div className="player-stats">
         <div className="stats-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
           <p className="stat-item">Level: {stats.level}</p>
@@ -371,38 +359,80 @@ function PlayerStats({ selectedPng, selectedAtkPng, stats }) {
           <p className="stat-item">Agility: {stats.agility}</p>
           <p className="stat-item">Dexterity: {stats.dexterity}</p>
           <p className="stat-item">Luck: {stats.luck}</p>
+          <p className="stat-item">Intellect: {stats.intellect}</p>
         </div>
       </div>
     </div>
   );
 }
 
+// EquippedItems Component
+function EquippedItems({ equipped, itemsList, unequipItem }) {
+  const equippedItems = equipped.map(id => itemsList.find(item => item.id === id)).filter(Boolean);
+
+  if (equippedItems.length === 0) {
+    return (
+      <div className="equipped-items-container" style={{ marginBottom: '20px' }}>
+        <h2>Equipped Items</h2>
+        <p>No items equipped.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="equipped-items-container" style={{ marginBottom: '20px' }}>
+      <h2>Equipped Items</h2>
+      <div className="equipped-items" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+        {equippedItems.map(item => (
+          <div key={item.id} className="equipped-item" style={{ textAlign: 'center' }}>
+            <img
+              src={item.png}
+              alt={item.name}
+              className="equipped-item-image"
+              style={{ width: '50px', height: '50px', cursor: 'pointer' }}
+              onClick={() => unequipItem(item.id)}
+            />
+            <p style={{ fontSize: '12px' }}>{item.name}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // InventoryGrid Component
-function InventoryGrid({ inventory, itemsList, setTooltip }) {
+function InventoryGrid({ inventory, itemsList, setTooltip, equipped, equipItem, unequipItem }) {
   // Map inventory IDs to item objects, including empty slots if needed
   const items = inventory.map((itemId, index) => itemsList.find((itm) => itm.id === itemId) || null);
 
   const handleUseItem = (itemId) => {
     const item = itemsList.find((itm) => itm.id === itemId);
-    if (item) {
+    if (item && !item.equippable) {
       alert(`Used ${item.name}!`);
-      // Implement logic to use or equip the item
-      // For example, remove from inventory if consumable
+      // Implement logic to use the item, e.g., remove from inventory if consumable
     }
   };
 
   const playTooltipSound = useAudio('/sounds/hover.mp3'); // Optional: Tooltip sound
 
   return (
-    <div className="inventory-grid-container">
+    <div className="inventory-grid-container" style={{ marginBottom: '20px' }}>
       <h2 className="inventory-title">Your Inventory</h2>
-      <div className="inventory-grid">
+      <div className="inventory-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, 80px)', gap: '10px' }}>
         {items.map((item, index) => (
           item ? (
             <div
               key={index}
-              className="inventory-item"
-              onClick={() => handleUseItem(item.id)}
+              className={`inventory-item ${equipped.includes(item.id) ? 'equipped' : ''}`}
+              style={{
+                position: 'relative',
+                cursor: 'pointer',
+                border: equipped.includes(item.id) ? '2px solid green' : '2px solid transparent',
+                borderRadius: '5px',
+                padding: '5px',
+                backgroundColor: '#2e2e2e',
+              }}
+              onClick={() => { if (!item.equippable) handleUseItem(item.id); }}
               onMouseEnter={(e) => {
                 const rect = e.currentTarget.getBoundingClientRect();
                 setTooltip({
@@ -420,13 +450,48 @@ function InventoryGrid({ inventory, itemsList, setTooltip }) {
                 src={item.png}
                 alt={item.name}
                 className="inventory-item-image"
+                style={{ width: '100%', height: 'auto' }}
               />
-              <span className="inventory-item-name">{item.name}</span>
+              <span className="inventory-item-name" style={{ fontSize: '12px', textAlign: 'center', display: 'block' }}>{item.name}</span>
+              {item.equippable && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent triggering onClick of parent
+                    if (equipped.includes(item.id)) {
+                      unequipItem(item.id);
+                    } else {
+                      equipItem(item.id);
+                    }
+                  }}
+                  className={`equip-button ${equipped.includes(item.id) ? 'unequip' : 'equip'}`}
+                  style={{
+                    position: 'absolute',
+                    bottom: '5px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    padding: '2px 5px',
+                    fontSize: '10px',
+                    cursor: 'pointer',
+                    backgroundColor: equipped.includes(item.id) ? '#ff6347' : '#32cd32',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '3px',
+                  }}
+                >
+                  {equipped.includes(item.id) ? 'Unequip' : 'Equip'}
+                </button>
+              )}
             </div>
           ) : (
             <div
               key={index}
               className="inventory-empty-slot"
+              style={{
+                width: '80px',
+                height: '80px',
+                backgroundColor: '#3e3e3e',
+                borderRadius: '5px',
+              }}
             ></div>
           )
         ))}
@@ -472,6 +537,16 @@ function LootModal({ lootedItems, handleCloseLootModal }) {
       <button
         onClick={handleCloseLootModal}
         className="loot-continue-button"
+        style={{
+          padding: '10px 20px',
+          marginTop: '20px',
+          fontSize: '16px',
+          cursor: 'pointer',
+          backgroundColor: '#ff6347',
+          color: 'white',
+          border: 'none',
+          borderRadius: '5px',
+        }}
       >
         Continue
       </button>

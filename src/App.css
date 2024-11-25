@@ -16,6 +16,85 @@
   50% { transform: rotate(2deg); }
   100% { transform: rotate(-2deg); }
 }
+/* src/App.css */
+
+/* Equip Button Styles */
+.equip-button {
+  margin-top: 5px;
+  padding: 5px 10px;
+  background-color: #4CAF50; /* Green */
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 12px;
+  border-radius: 4px;
+}
+
+.equip-button:hover {
+  background-color: #45a049;
+}
+
+.equip-button.unequip {
+  background-color: #f44336; /* Red for Unequip */
+}
+
+.equip-button.unequip:hover {
+  background-color: #da190b;
+}
+
+/* Inventory Item Styles */
+.inventory-item.equipped {
+  border: 2px solid #FFD700; /* Gold border for equipped items */
+  padding: 2px;
+  border-radius: 4px;
+}
+
+/* Loot Modal Button */
+.loot-continue-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #FF6347; /* Tomato */
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 4px;
+}
+
+.loot-continue-button:hover {
+  background-color: #FF4500; /* OrangeRed */
+}
+
+/* Inventory Grid Styles */
+.inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 10px;
+}
+
+.inventory-item, .inventory-empty-slot {
+  background-color: #2e2e2e;
+  border: 1px solid #444;
+  border-radius: 4px;
+  padding: 5px;
+  text-align: center;
+  position: relative;
+}
+
+.inventory-empty-slot {
+  background-color: #1e1e1e;
+}
+
+/* Tooltip Styles */
+.retro-tooltip {
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.8);
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  pointer-events: none;
+  z-index: 100;
+}
 
 .player-image {
   animation: sway-animation 2s infinite;

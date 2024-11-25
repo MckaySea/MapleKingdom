@@ -16,8 +16,7 @@ import useAudio from './useAudio';
 import Cookies from 'js-cookie';
 import itemsList from '../itemslist';
 function BattleScene({
-  selectedPng,
-  selectedAtkPng, // Added prop for attack PNG
+  selectedPng, // Added prop for attack PNG
   stats,
   onBackToLobby,
   addItemToInventory,
@@ -89,7 +88,7 @@ function BattleScene({
   // Load player images
   const playerImage = useRef(new Image());
   playerImage.current.src = selectedPng;
-
+const selectedAtkPng = Cookies.get("selectedAtkPng")
   const playerAttackImage = useRef(new Image());
   playerAttackImage.current.src = selectedAtkPng; // Use selectedAtkPng instead of hardcoded path
 
@@ -133,6 +132,21 @@ function BattleScene({
           { item: 'Health Potion', dropRate: 0.4 }, // 60% chance
           { item: 'Maple Staff', dropRate: 0.1 },   // 30% chance
           { item: 'Maple Shield', dropRate: 0.1 },        // 10% chance
+        ],
+      },
+      {
+        name: 'Golem',
+        image: '/mobs/pigidle.png',
+        attackImage: '/mobs/pigmad.png',
+        attack: 32,
+        defense: 19,
+        maxHp: 130,
+        agility: 18,
+        level: 9,
+        lootTable: [
+          { item: 'Health Potion', dropRate: 0.5 }, // 60% chance
+          { item: 'Maple Staff', dropRate: 0.2 },   // 30% chance
+          { item: 'Maple Shield', dropRate: 0.2 },        // 10% chance
         ],
       },
       // Add more enemies as needed
@@ -225,7 +239,9 @@ function BattleScene({
         playerY =
           centerY + radius * Math.sin(anglePlayerRef.current);
       } else {
-        playerX = centerX - horizontalOffset;
+        playerX =
+        centerX - horizontalOffset + radius * Math.cos(anglePlayerRef.current);
+     
         playerY = centerY;
       }
 
@@ -241,8 +257,10 @@ function BattleScene({
         enemyY =
           centerY + radius * Math.sin(angleEnemyRef.current);
       } else {
-        enemyX = centerX + horizontalOffset;
-        enemyY = centerY;
+        enemyX =
+          centerX + horizontalOffset + Math.cos(angleEnemyRef.current * 4);
+  
+        enemyY =  centerY + Math.sin(angleEnemyRef.current * 2);
       }
 
       // Adjust position to center the image
