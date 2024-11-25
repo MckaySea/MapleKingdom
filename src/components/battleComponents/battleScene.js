@@ -109,14 +109,30 @@ const selectedAtkPng = Cookies.get("selectedAtkPng")
         name: 'Mushroom',
         image: '/sprites2/mush.png',
         attackImage: '/sprites2/mushatk.png',
-        attack: 15,
+        attack: 23,
+        defense: 6,
+        maxHp: 90,
+        agility: 11,
+        level: 3,
+        lootTable: [
+          { item: 'Health Potion', dropRate: 0.3 }, // 40% chance
+          { item: 'Maple Staff', dropRate: 0.2 },   // 10% chance
+          { item: 'Maple Shield', dropRate: 0.1 }, 
+        ],
+      },
+      {
+        name: 'Baby Dragon',
+        image: '/sprites3/8.png',
+        attackImage: '/sprites2/2.png',
+        attack: 18,
         defense: 5,
-        maxHp: 80,
+        maxHp: 60,
         agility: 10,
         level: 1,
         lootTable: [
           { item: 'Health Potion', dropRate: 0.3 }, // 40% chance
           { item: 'Maple Staff', dropRate: 0.1 },   // 10% chance
+          { item: 'Maple Shield', dropRate: 0.1 }, 
         ],
       },
       {
@@ -129,24 +145,25 @@ const selectedAtkPng = Cookies.get("selectedAtkPng")
         agility: 15,
         level: 5,
         lootTable: [
-          { item: 'Health Potion', dropRate: 0.4 }, // 60% chance
-          { item: 'Maple Staff', dropRate: 0.1 },   // 30% chance
-          { item: 'Maple Shield', dropRate: 0.1 },        // 10% chance
+          { item: 'Gold Coin', dropRate: 0.4 }, // 60% chance
+          { item: 'Maple Axe', dropRate: 0.1 },   // 30% chance
+          { item: 'Maple Shield', dropRate: 0.2 },
+                  // 10% chance
         ],
       },
       {
-        name: 'Golem',
-        image: '/mobs/pigidle.png',
-        attackImage: '/mobs/pigmad.png',
+        name: 'Yeti',
+        image: '/sprites4/2.png',
+        attackImage: '/sprites4/0.png',
         attack: 32,
         defense: 19,
         maxHp: 130,
         agility: 18,
         level: 9,
         lootTable: [
-          { item: 'Health Potion', dropRate: 0.5 }, // 60% chance
-          { item: 'Maple Staff', dropRate: 0.2 },   // 30% chance
-          { item: 'Maple Shield', dropRate: 0.2 },        // 10% chance
+          { item: 'Gold Coin', dropRate: 0.3 }, // 60% chance
+          { item: 'Zard', dropRate: 0.1 },   // 30% chance
+            // 10% chance
         ],
       },
       // Add more enemies as needed
@@ -475,15 +492,17 @@ const handleLootDrops = useCallback(
       const enemyActionTimeout = setTimeout(() => {
         setEnemyState('attacking');
         playAttackSound();
-
+  
         setPlayerHP((prevHP) => {
           // Compute miss chance
-          const missChance =
-            playerAgility / (playerAgility + enemyStats.agility);
-
+          const missChance = Math.min(
+            0.1 + (Math.max(playerAgility - 20, 0) / 40) * 0.15,
+            0.25
+          );
+  
           // Generate a random number between 0 and 1
           const rand = Math.random();
-
+  
           if (rand < missChance) {
             // Enemy missed
             console.log('Enemy missed!');
@@ -499,14 +518,14 @@ const handleLootDrops = useCallback(
             return newHP;
           }
         });
-
+  
         setTimeout(() => {
           setEnemyState('normal');
           setCurrentTurn('Player');
           isClicked.current = 0; // Reset for the next player turn
         }, 500);
       }, 1000);
-
+  
       return () => clearTimeout(enemyActionTimeout);
     }
   }, [
@@ -519,46 +538,45 @@ const handleLootDrops = useCallback(
     playerDefense,
     enemyStats,
   ]);
+  
 
   // Handle enemy defeat
   const handleEnemyDefeat = useCallback(() => {
     const expGain = 50; // Experience points for defeating the enemy
     const newExp = currentExp + expGain;
-
+  
     let updatedStats = { ...stats }; // Make a copy of stats
-
+  
     // Check for level up
     if (newExp >= expToLevelUp) {
       const excessExp = newExp - expToLevelUp;
       const newLevel = playerLevel + 1;
       const newExpToLevelUp = expToLevelUp + 100;
-
+  
       // Update stats on level up
       updatedStats = {
         ...updatedStats,
         level: newLevel,
         currentExp: excessExp,
         expToLevelUp: newExpToLevelUp,
-        attack: playerAttack + 5,
-        defense: playerDefense + 5,
-        maxHp: playerMaxHp + 20,
-        agility: playerAgility + 2,
+        skillPoints: (stats.skillPoints || 0) + 3, // Add skill points
       };
-
-      // Update state
-      setPlayerHP(updatedStats.maxHp); // Restore HP
+  
+      // Keep player HP unchanged during level-up
+      setPlayerHP(updatedStats.maxHp);
     } else {
       updatedStats.currentExp = newExp;
     }
-
-    // Update cookies and show victory modal
+  
+    // Save updated stats to cookies
     Cookies.set('stats', JSON.stringify(updatedStats), { expires: 7 });
+  
     setShowVictoryModal(true);
     playVictorySound();
-
+  
     // Handle loot drops
     handleLootDrops(selectedEnemy.lootTable);
-
+  
     // Return to lobby after delay
     setTimeout(() => {
       onBackToLobby();
@@ -567,16 +585,13 @@ const handleLootDrops = useCallback(
     currentExp,
     expToLevelUp,
     playerLevel,
-    playerAttack,
-    playerDefense,
-    playerMaxHp,
-    playerAgility,
     stats,
     playVictorySound,
     onBackToLobby,
     selectedEnemy,
     handleLootDrops,
   ]);
+  
 
   // Watch for enemyHP changes to handle enemy defeat
   useEffect(() => {

@@ -1,0 +1,59 @@
+import React from 'react';
+import Cookies from 'js-cookie';
+
+function PlayerStats({ stats, setStats }) {
+  if (!stats) {
+    return <div>Loading stats...</div>; // Fallback if stats are not yet loaded
+  }
+
+  const { skillPoints, attack, defense, maxHp, agility } = stats;
+
+  const allocateSkillPoint = (stat) => {
+    if (!skillPoints || skillPoints <= 0) return;
+
+    const updatedStats = {
+      ...stats,
+      [stat]: stats[stat] + 1, // Increase the selected stat
+      skillPoints: skillPoints - 1, // Decrease skill points
+    };
+
+    // Update the stats in the cookies
+    Cookies.set('stats', JSON.stringify(updatedStats), { expires: 7 });
+
+    // Update the stats in the state
+    setStats(updatedStats);
+  };
+
+  return (
+    <div className="player-stats-container" style={{ marginBottom: '20px' }}>
+      <h2>Player Stats</h2>
+      <p>Skill Points: {skillPoints || 0}</p>
+      <div className="stats-row" style={{ display: 'flex', gap: '10px' }}>
+        <p>Attack: {attack}</p>
+        {skillPoints > 0 && (
+          <button onClick={() => allocateSkillPoint('attack')}>+</button>
+        )}
+      </div>
+      <div className="stats-row" style={{ display: 'flex', gap: '10px' }}>
+        <p>Defense: {defense}</p>
+        {skillPoints > 0 && (
+          <button onClick={() => allocateSkillPoint('defense')}>+</button>
+        )}
+      </div>
+      <div className="stats-row" style={{ display: 'flex', gap: '10px' }}>
+        <p>Max HP: {maxHp}</p>
+        {skillPoints > 0 && (
+          <button onClick={() => allocateSkillPoint('maxHp')}>+</button>
+        )}
+      </div>
+      <div className="stats-row" style={{ display: 'flex', gap: '10px' }}>
+        <p>Agility: {agility}</p>
+        {skillPoints > 0 && (
+          <button onClick={() => allocateSkillPoint('agility')}>+</button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default PlayerStats;

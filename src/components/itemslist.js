@@ -23,7 +23,7 @@ const itemsList = [
     description: 'Increases attack by 5.',
     png: '/items/maplestaff.png',
     equippable: true,
-    attack: 5,
+    attack: 7,
     type: 'weapon', // Define type
   },
   {
@@ -42,6 +42,33 @@ const itemsList = [
     png: '/items/goldcoin.png',
     equippable: false,
     // No type needed
+  },
+  {
+    id: 6,
+    name: 'Zard',
+    description: 'Increases attack by 10.',
+    png: '/items/zard.png',
+    equippable: true,
+    attack: 10,
+    type: 'weapon', // Define type
+  },
+  {
+    id: 7,
+    name: 'Maple Axe',
+    description: 'Increases attack by 7.',
+    png: '/items/mapleaxe.png',
+    equippable: true,
+    attack: 7,
+    type: 'weapon', // Define type
+  },
+  {
+    id: 8,
+    name: 'Katana',
+    description: 'Increases attack by 6.',
+    png: '/items/katana.png',
+    equippable: true,
+    attack: 6,
+    type: 'weapon', // Define type
   },
   // Add more items as needed
 ];

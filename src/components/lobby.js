@@ -306,6 +306,9 @@ function Lobby({
           <button onClick={() => addItemToInventory(3)} style={manageButtonStyle}>Add Maple Staff</button>
           <button onClick={() => addItemToInventory(4)} style={manageButtonStyle}>Add Maple Shield</button>
           <button onClick={() => addItemToInventory(5)} style={manageButtonStyle}>Add Gold Coin</button>
+          <button onClick={() => addItemToInventory(6)} style={manageButtonStyle}>Add Zard</button>
+          <button onClick={() => addItemToInventory(7)} style={manageButtonStyle}>Add Maple Axe</button>
+          <button onClick={() => addItemToInventory(8)} style={manageButtonStyle}>Add Katana</button>
         </div>
 
         {/* Loot Modal */}
@@ -354,27 +357,67 @@ const manageButtonStyle = {
 };
 
 // PlayerStats Component
-function PlayerStats({ stats }) {
+function PlayerStats() {
+  const [stats, setStats] = useState(null);
+
+  // Load stats from cookies on component mount
+  useEffect(() => {
+    const savedStats = Cookies.get('stats');
+    if (savedStats) {
+      setStats(JSON.parse(savedStats));
+    }
+  }, []);
+
+  const allocateSkillPoint = (stat) => {
+    if (!stats || stats.skillPoints <= 0) return;
+
+    // Update stats in local state
+    const updatedStats = {
+      ...stats,
+      [stat]: stats[stat] + 1, // Increase the selected stat
+      skillPoints: stats.skillPoints - 1, // Decrease skill points
+    };
+
+    setStats(updatedStats);
+
+    // Save updated stats back to cookies
+    Cookies.set('stats', JSON.stringify(updatedStats), { expires: 7 });
+  };
+
   if (!stats) {
     return <div>Loading stats...</div>; // Fallback if stats are not yet loaded
   }
 
+  const { skillPoints, attack, defense, maxHp, agility, currentExp } = stats;
+
   return (
     <div className="player-stats-container" style={{ marginBottom: '20px' }}>
-      <div className="player-stats">
-        <div className="stats-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-          <p className="stat-item">Level: {stats.level}</p>
-          <p className="stat-item">EXP: {stats.currentExp} / {stats.expToLevelUp}</p>
-          <p className="stat-item">Attack: {stats.attack}</p>
-          <p className="stat-item">Defense: {stats.defense}</p>
-        </div>
-        <div className="stats-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-          <p className="stat-item">Max HP: {stats.maxHp}</p>
-          <p className="stat-item">Agility: {stats.agility}</p>
-          <p className="stat-item">Dexterity: {stats.dexterity}</p>
-          <p className="stat-item">Luck: {stats.luck}</p>
-          <p className="stat-item">Intellect: {stats.intellect}</p>
-        </div>
+      <h2>Player Stats</h2>
+      <h3>EXP: {currentExp}</h3>
+      <p>Skill Points: {skillPoints || 0}</p>
+      <div className="stats-row" style={{ display: 'flex', gap: '10px' }}>
+        <p>Attack: {attack}</p>
+        {skillPoints > 0 && (
+          <button onClick={() => allocateSkillPoint('attack')}>+</button>
+        )}
+      </div>
+      <div className="stats-row" style={{ display: 'flex', gap: '10px' }}>
+        <p>Defense: {defense}</p>
+        {skillPoints > 0 && (
+          <button onClick={() => allocateSkillPoint('defense')}>+</button>
+        )}
+      </div>
+      <div className="stats-row" style={{ display: 'flex', gap: '10px' }}>
+        <p>Max HP: {maxHp}</p>
+        {skillPoints > 0 && (
+          <button onClick={() => allocateSkillPoint('maxHp')}>+</button>
+        )}
+      </div>
+      <div className="stats-row" style={{ display: 'flex', gap: '10px' }}>
+        <p>Agility: {agility}</p>
+        {skillPoints > 0 && (
+          <button onClick={() => allocateSkillPoint('agility')}>+</button>
+        )}
       </div>
     </div>
   );
