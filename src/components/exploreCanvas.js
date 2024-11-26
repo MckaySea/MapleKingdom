@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import CanvasRenderer from './battleComponents/canvasRenderer';
 import Cookies from 'js-cookie';
 
-// Utility function to get a cookie value by name
 const getCookie = (name) => {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
@@ -19,15 +18,18 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby }) {
   const [otherPlayers, setOtherPlayers] = useState({});
   const [playerPng, setPlayerPng] = useState(null);
   const [backgroundLoaded, setBackgroundLoaded] = useState(false);
+  const [goldCoins, setGoldCoins] = useState([]);
 
   const backgroundImage = useRef(new Image());
+  const goldCoinImage = useRef(new Image());
 
   useEffect(() => {
-    // Load the background image
     backgroundImage.current.src = '/msbg.jpg';
     backgroundImage.current.onload = () => {
-      setBackgroundLoaded(true); // Set to true once the image is loaded
+      setBackgroundLoaded(true);
     };
+
+    goldCoinImage.current.src = '/goldcoin.png';
   }, []);
 
   useEffect(() => {
@@ -36,7 +38,7 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby }) {
       Object.values(otherPlayers).forEach((player) => {
         if (!images[player.png]) {
           const img = new Image();
-          img.src = player.png; // Dynamically set sprite based on player.png
+          img.src = player.png;
           images[player.png] = img;
         }
       });
@@ -47,7 +49,6 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby }) {
   }, [otherPlayers]);
 
   useEffect(() => {
-    // Get the selected PNG from cookies
     const pngFromCookie = getCookie('selectedPng');
     setPlayerPng(pngFromCookie);
 
@@ -56,7 +57,7 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby }) {
       return;
     }
 
-    const ws = new WebSocket('ws://localhost:8080');
+    const ws = new WebSocket('ws://027d-2601-201-8a80-5780-d8d9-7bdc-8caa-a8f9.ngrok-free.app');
 
     ws.onopen = () => {
       console.log('WebSocket connection established');
@@ -122,7 +123,6 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby }) {
     };
   }, [playerId, playerLevel]);
 
-  // Update player positions at regular intervals
   useEffect(() => {
     const interval = setInterval(() => {
       setOtherPlayers((prev) =>
@@ -131,7 +131,6 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby }) {
           let newX = player.x + player.dx;
           let newY = player.y + player.dy;
 
-          // Bounce off canvas edges
           if (newX < 0 || newX > canvasWidth - 100) player.dx *= -1;
           if (newY < 0 || newY > canvasHeight - 100) player.dy *= -1;
 
@@ -143,49 +142,46 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby }) {
           return acc;
         }, {})
       );
-    }, 50); // Update every 50ms
+    }, 50);
 
     return () => clearInterval(interval);
   }, [canvasWidth, canvasHeight]);
 
-  const preloadPlayerImages = () => {
-    const images = {};
-    Object.values(otherPlayers).forEach((player) => {
-      if (!images[player.png]) {
-        const img = new Image();
-        img.src = player.png; // Dynamically set sprite based on player.png
-        images[player.png] = img;
-      }
-    });
-    return images;
-  };
+
 
   const draw = useCallback(
     (ctx) => {
-      if (!backgroundLoaded) return; // Only draw if the background is loaded
+      if (!backgroundLoaded) return;
 
       ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-      // Draw the background image
       ctx.drawImage(backgroundImage.current, 0, 0, canvasWidth, canvasHeight);
 
-      const playerImages = preloadPlayerImages();
+      const playerImages = Object.values(otherPlayers).reduce((acc, player) => {
+        if (!acc[player.png]) {
+          const img = new Image();
+          img.src = player.png;
+          acc[player.png] = img;
+        }
+        return acc;
+      }, {});
 
-      // Render all other players' PNGs moving around the canvas
       Object.values(otherPlayers).forEach((player) => {
         let img = playerImages[player.png] || new Image();
 
         if (img.complete && img.naturalWidth > 0) {
-          ctx.drawImage(img, player.x, player.y, 100, 100); // Use player's coordinates
+          ctx.drawImage(img, player.x, player.y, 100, 100);
         }
 
-        // Draw player level
         ctx.fillStyle = 'red';
         ctx.font = '22px Arial';
         ctx.fillText(`Lv ${player.level}`, player.x + 50, player.y - 10);
       });
 
-      // Draw the "Back to Lobby" button
+      goldCoins.forEach((coin) => {
+        ctx.drawImage(goldCoinImage.current, coin.x, coin.y, 30, 30);
+      });
+
       ctx.fillStyle = '#FF6347';
       ctx.fillRect(10, 10, 150, 40);
       ctx.fillStyle = 'white';
@@ -193,7 +189,7 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby }) {
       ctx.textAlign = 'center';
       ctx.fillText('Back to Lobby', 85, 30);
     },
-    [otherPlayers, canvasWidth, canvasHeight, backgroundLoaded]
+    [otherPlayers, goldCoins, canvasWidth, canvasHeight, backgroundLoaded]
   );
 
   const handleMouseClick = (e) => {
@@ -202,7 +198,6 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby }) {
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
 
-    // Check if the "Back to Lobby" button is clicked
     if (mouseX >= 10 && mouseX <= 160 && mouseY >= 10 && mouseY <= 50) {
       onBackToLobby();
     }
