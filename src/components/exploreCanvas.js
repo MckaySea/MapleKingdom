@@ -44,7 +44,7 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby }) {
   }, []);
 
   // Determine WebSocket URL based on environment
-  const WS_URL = process.env.REACT_APP_WS_URL || 'ws://localhost:8080';
+  const WS_URL = 'wss://027d-2601-201-8a80-5780-d8d9-7bdc-8caa-a8f9.ngrok-free.app'//localhost:8080';
 
   // Handle nickname submission and WebSocket connection
   const handleNicknameSubmit = (e) => {
