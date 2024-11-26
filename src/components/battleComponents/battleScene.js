@@ -1190,7 +1190,7 @@ if (showMagicMenu) {
   const handleEnemyDefeat = useCallback(() => {
     const expGain = 50; // Experience points for defeating the enemy
     const newExp = currentExp + expGain;
-
+console.log(expGain, newExp)
     let updatedStats = { ...stats }; // Make a copy of stats
 
     // Check for level up
@@ -1207,24 +1207,29 @@ if (showMagicMenu) {
         expToLevelUp: newExpToLevelUp,
         skillPoints: (stats.skillPoints || 0) + 3, // Add skill points
         // Optionally, increase maxMana on level up
-        maxMana: Math.floor(updatedStats.maxMana * 1.1), // Increase maxMana by 10%
-        currentMana: Math.min(updatedStats.currentMana + 10, Math.floor(updatedStats.maxMana * 1.1)), // Regenerate some mana
+        // maxMana: Math.floor(updatedStats.maxMana * 1.1), // Increase maxMana by 10%
+        // currentMana: Math.min(updatedStats.currentMana + 10, Math.floor(updatedStats.maxMana * 1.1)), // Regenerate some mana
       };
 
       // Keep player HP unchanged during level-up or adjust as needed
       setPlayerHP(updatedStats.maxHp);
       setPlayerMana(updatedStats.currentMana);
     } else {
-      updatedStats.currentExp = newExp;
+    
     }
-
+    updatedStats.currentExp = newExp;
     // Reset dynamic stats to maximum values after battle
     updatedStats.currentHP = updatedStats.maxHp;
     updatedStats.currentMana = updatedStats.maxMana;
 
     // Save updated stats to cookies
-    Cookies.set('stats', JSON.stringify(updatedStats), { expires: 7 });
-
+    try {
+      console.log("entry")
+      Cookies.set('stats', JSON.stringify(updatedStats), { expires: 7, path: '/' });
+      console.log('Stats cookie set successfully:', Cookies.get('stats'));
+    } catch (error) {
+      console.error('Error setting stats cookie:', error);
+    }
     // Update local state
     setPlayerHP(updatedStats.maxHp);
     setPlayerMana(updatedStats.maxMana);
@@ -1260,8 +1265,8 @@ if (showMagicMenu) {
 
   // Handle player defeat
   const handlePlayerDefeat = useCallback(() => {
-    // Reset stats to maximum values
-    resetStatsToMax();
+    // Reset stats to maximum vhandalues
+    // resetStatsToMax();
 
     setShowDefeatModal(true);
     playDefeatSound(); // Play defeat sound effect

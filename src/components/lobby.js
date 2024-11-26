@@ -9,6 +9,7 @@ import '../App.css';
 import Cookies from 'js-cookie';
 import CanvasRenderer from './battleComponents/canvasRenderer';
 import ChatBox from './chatbox';
+
 function Lobby({
   stats,
   selectedPng,
@@ -41,6 +42,7 @@ function Lobby({
   // Audio Hooks
   const playHoverSound = useAudio('/sounds/hover.mp3'); // ensure useAudio is correctly implemented
   const playClickSound = useAudio('/sounds/clicker.mp3');
+  
   // Effect to watch for changes in lastLoot
   useEffect(() => {
     if (lastLoot.length > 0) {
@@ -131,15 +133,6 @@ function Lobby({
       isHovered: hoveredButtonRef.current === 'enterBattle',
     });
 
-    drawCanvasButton(ctx, {
-      x: canvasWidth / 2 - 100,
-      y: canvasHeight / 2,
-      width: 300,
-      height: 40,
-      text: 'Collect Resources',
-      isHovered: hoveredButtonRef.current === 'collectResources',
-    });
-
     // Increment frame count for animation
     frameCount.current += 1;
   };
@@ -187,6 +180,10 @@ function Lobby({
         playHoverSound();
       }
     
+    } else {
+      if (hoveredButtonRef.current !== null) {
+        hoveredButtonRef.current = null;
+      }
     }
   };
   
@@ -237,18 +234,18 @@ function Lobby({
       }}
     >
       {tooltip.visible && (
-  <div
-    className="retro-tooltip"
-    style={{
-      position: 'absolute',
-      top: tooltip.position.y + 10,
-      left: tooltip.position.x,
-      transform: 'translateX(-50%)',
-    }}
-  >
-    {tooltip.content}
-  </div>
-)}
+        <div
+          className="retro-tooltip"
+          style={{
+            position: 'absolute',
+            top: tooltip.position.y + 10,
+            left: tooltip.position.x,
+            transform: 'translateX(-50%)',
+          }}
+        >
+          {tooltip.content}
+        </div>
+      )}
 
       {/* Canvas Section */}
       <div style={{ flex: '7 7 70%', position: 'relative' }}>
@@ -278,7 +275,7 @@ function Lobby({
       >
         <h1 className="inventory-title">Welcome to the Lobby!</h1>
         {/* Display Player Stats */}
-        <PlayerStats stats={stats} />
+        <PlayerStats stats={stats} /> {/* Pass stats as prop */}
 
         {/* Display Equipped Items */}
         <EquippedItems
@@ -373,50 +370,51 @@ const manageButtonStyle = {
 };
 
 // PlayerStats Component
-function PlayerStats() {
-  const [stats, setStats] = useState(null);
+function PlayerStats({ stats }) { // Accept stats as prop
+  const [localStats, setLocalStats] = useState(null);
 
-  // Load stats from cookies on component mount
+  // Load stats from props on component mount and when stats prop changes
   useEffect(() => {
-    const savedStats = Cookies.get('stats');
-    if (savedStats) {
-      setStats(JSON.parse(savedStats));
+    if (stats) {
+      setLocalStats(stats);
     }
   }, [stats]);
 
   const allocateSkillPoint = (stat) => {
     // Ensure stats exist and there are available skill points
-    if (!stats || stats.skillPoints <= 0) return;
+    if (!localStats || localStats.skillPoints <= 0) return;
   
     // Determine the increment value based on the stat
     const increment = stat === 'maxHp' ? 5 : 1;
   
     // Update stats in local state
     const updatedStats = {
-      ...stats,
-      [stat]: stats[stat] + increment, // Increase the selected stat
-      skillPoints: stats.skillPoints - 1, // Decrease skill points
+      ...localStats,
+      [stat]: localStats[stat] + increment, // Increase the selected stat
+      skillPoints: localStats.skillPoints - 1, // Decrease skill points
     };
   
     // Update the state with the new stats
-    setStats(updatedStats);
+    setLocalStats(updatedStats);
   
-    // Save updated stats back to cookies with a 7-day expiration
+    // Save updated stats to cookies with a 7-day expiration
     Cookies.set('stats', JSON.stringify(updatedStats), { expires: 7 });
-  };
   
+    console.log('Player stats have been updated:', updatedStats);
+  };
 
-  if (!stats) {
+
+  if (!localStats) {
     return <div>Loading stats...</div>; // Fallback if stats are not yet loaded
   }
 
-  const { level, skillPoints, attack, defense, maxHp, agility, currentExp, expToLevelUp, dexterity, intellect, luck} = stats;
+  const { level, skillPoints, attack, defense, maxHp, agility, currentExp, expToLevelUp, dexterity, intellect, luck} = localStats;
 
   return (
     <div className="player-stats-container" style={{ marginBottom: '20px' }}>
       <h2>Player Stats</h2>
       <h2>Level: {level}</h2>
-      <h3>EXP: {currentExp}/{expToLevelUp} </h3>
+      <h3>EXP: {currentExp} / {expToLevelUp}</h3>
       <p>Skill Points: {skillPoints || 0}</p>
       <div className="stats-row" style={{ display: 'flex', gap: '10px' }}>
         <p>Attack: {attack}</p>
@@ -526,40 +524,63 @@ function InventoryGrid({ inventory, itemsList, setTooltip, equipped, equipItem, 
 
   return (
     <div className="inventory-grid-container">
-    <h2 className="inventory-title">Your Inventory</h2>
-    <div className="inventory-grid">
-      {items.map((item, index) => (
-        item ? (
-          <div
-            key={index}
-            className={`inventory-item ${equipped.includes(item.id) ? 'equipped' : ''}`}
-            onMouseEnter={(e) => handleMouseEnter(item, e)}
-            onMouseLeave={handleMouseLeave}
-          >
-            <img src={item.png} alt={item.name} className="inventory-item-image" />
-            <span className="inventory-item-name">{item.name}</span>
-            {item.equippable && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (equipped.includes(item.id)) {
-                    unequipItem(item.id);
-                  } else {
-                    equipItem(item.id);
-                  }
-                }}
-                className={`equip-button ${equipped.includes(item.id) ? 'unequip' : 'equip'}`}
-              >
-                {equipped.includes(item.id) ? 'Unequip' : 'Equip'}
-              </button>
-            )}
-          </div>
-        ) : (
-          <div key={index} className="inventory-empty-slot"></div>
-        )
-      ))}
+      <h2 className="inventory-title">Your Inventory</h2>
+      <div className="inventory-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+        {items.map((item, index) => (
+          item ? (
+            <div
+              key={index}
+              className={`inventory-item ${equipped.includes(item.id) ? 'equipped' : ''}`}
+              onMouseEnter={(e) => handleMouseEnter(item, e)}
+              onMouseLeave={handleMouseLeave}
+              style={{
+                position: 'relative',
+                width: '64px',
+                height: '64px',
+                border: '1px solid #555',
+                borderRadius: '5px',
+                padding: '5px',
+                boxSizing: 'border-box',
+                cursor: 'pointer',
+                backgroundColor: '#222',
+              }}
+            >
+              <img src={item.png} alt={item.name} className="inventory-item-image" style={{ width: '100%', height: '100%' }} />
+              <span className="inventory-item-name" style={{ position: 'absolute', bottom: '2px', left: '50%', transform: 'translateX(-50%)', fontSize: '10px', color: 'white' }}>{item.name}</span>
+              {item.equippable && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (equipped.includes(item.id)) {
+                      unequipItem(item.id);
+                    } else {
+                      equipItem(item.id);
+                    }
+                  }}
+                  className={`equip-button ${equipped.includes(item.id) ? 'unequip' : 'equip'}`}
+                  style={{
+                    position: 'absolute',
+                    top: '2px',
+                    right: '2px',
+                    padding: '2px 5px',
+                    fontSize: '10px',
+                    cursor: 'pointer',
+                    backgroundColor: equipped.includes(item.id) ? '#ff6347' : '#32cd32',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '3px',
+                  }}
+                >
+                  {equipped.includes(item.id) ? 'Unequip' : 'Equip'}
+                </button>
+              )}
+            </div>
+          ) : (
+            <div key={index} className="inventory-empty-slot" style={{ width: '64px', height: '64px', border: '1px dashed #555', borderRadius: '5px', backgroundColor: '#111' }}></div>
+          )
+        ))}
+      </div>
     </div>
-  </div>
   );
 }
 
