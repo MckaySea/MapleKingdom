@@ -111,9 +111,9 @@ const selectedAtkPng = Cookies.get("selectedAtkPng")
         name: 'Mushroom',
         image: '/sprites2/mush.png',
         attackImage: '/sprites2/mushatk.png',
-        attack: 19,
-        defense: 7,
-        maxHp: 80,
+        attack: 22,
+        defense: 10,
+        maxHp: 90,
         agility: 11,
         level: 3,
         lootTable: [
@@ -135,8 +135,25 @@ const selectedAtkPng = Cookies.get("selectedAtkPng")
         level: 1,
         lootTable: [
           { item: 'Health Potion', dropRate: 0.3 }, // 40% chance
-          { item: 'Katana', dropRate: 0.2 },    // 10% chance
+          { item: 'Katana', dropRate: 0.1 },    // 10% chance
           { item: 'Maple Shield', dropRate: 0.1 }, 
+          { item: 'Gold Coin', dropRate: 0.1 },
+        ],
+      },
+      {
+        name: 'Baby Bunny',
+        image: '/mobs/bunnyidle.png',
+        attackImage: '/sprites2/bunnyatk.png',
+        attack: 20,
+        defense: 7,
+        maxHp: 70,
+        agility: 10,
+        level: 2,
+        lootTable: [
+          { item: 'Health Potion', dropRate: 0.3 }, // 40% chance
+          { item: 'Katana', dropRate: 0.3 },    // 10% chance
+          { item: 'Maple Shield', dropRate: 0.1 }, 
+          { item: 'Pitch Fork', dropRate: 0.1 }, 
           { item: 'Gold Coin', dropRate: 0.1 },
         ],
       },
@@ -146,9 +163,9 @@ const selectedAtkPng = Cookies.get("selectedAtkPng")
         attackImage: '/mobs/alienatk.png',
         attack: 23,
         defense: 12,
-        maxHp: 95,
+        maxHp: 105,
         agility: 15,
-        level: 6,
+        level: 5,
         lootTable: [
           { item: 'Gold Coin', dropRate: 0.4 },
           { item: 'Round Mace', dropRate: 0.2 },  
@@ -164,7 +181,7 @@ const selectedAtkPng = Cookies.get("selectedAtkPng")
         defense: 23,
         maxHp: 130,
         agility: 15,
-        level: 8,
+        level: 7,
         lootTable: [
           { item: 'Gold Coin', dropRate: 0.5 },
           { item: 'Steel Club', dropRate: 0.2 },  // 60% chance
