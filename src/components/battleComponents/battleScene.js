@@ -96,18 +96,139 @@ function BattleScene({
         agility: 11,
         level: 3,
         lootTable: [
-          { item: 'Health Potion', dropRate: 0.3 },
+          { item: 'Health Potion', dropRate: 0.2 }, // 40% chance
           { item: 'Katana', dropRate: 0.1 },
-          { item: 'Pitch Fork', dropRate: 0.2 },
-          { item: 'Maple Shield', dropRate: 0.1 },
+          { item: 'Pitch Fork', dropRate: 0.2 },   // 10% chance   // 10% chance
+          { item: 'Maple Shield', dropRate: 0.1 }, 
           { item: 'Gold Coin', dropRate: 0.2 },
+        ],
+      },
+      {
+        name: 'Baby Dragon',
+        image: '/sprites3/8.png',
+        attackImage: '/sprites2/2.png',
+        attack: 18,
+        defense: 5,
+        maxHp: 60,
+        agility: 10,
+        level: 1,
+        lootTable: [
+          { item: 'Health Potion', dropRate: 0.2 }, // 40% chance
+          { item: 'Katana', dropRate: 0.1 },    // 10% chance
+          { item: 'Maple Shield', dropRate: 0.1 },  
+          { item: 'White Gloves', dropRate: 0.1 }, 
+          { item: 'Gold Coin', dropRate: 0.1 },
+        ],
+      },
+      {
+        name: 'Baby Bunny',
+        image: '/mobs/bunnyidle.png',
+        attackImage: '/mobs/bunnyatk.png',
+        attack: 20,
+        defense: 7,
+        maxHp: 70,
+        agility: 10,
+        level: 2,
+        lootTable: [
+          { item: 'Health Potion', dropRate: 0.2 }, // 40% chance
+          { item: 'Katana', dropRate: 0.3 },    // 10% chance
+          { item: 'Maple Shield', dropRate: 0.1 }, 
+          { item: 'Pitch Fork', dropRate: 0.1 }, 
+          { item: 'White Gloves', dropRate: 0.1 }, 
+          { item: 'Gold Coin', dropRate: 0.1 },
+        ],
+      },
+      {
+        name: 'Alien',
+        image: '/mobs/alienidle.png',
+        attackImage: '/mobs/alienatk.png',
+        attack: 23,
+        defense: 12,
+        maxHp: 105,
+        agility: 15,
+        level: 5,
+        lootTable: [
+          { item: 'Gold Coin', dropRate: 0.4 },
+          { item: 'Health Potion', dropRate: 0.2 }, 
+          { item: 'Round Mace', dropRate: 0.2 },  
+          { item: 'Steel Club', dropRate: 0.1 },
+          { item: 'White Gloves', dropRate: 0.1 },   // 60% chance // 30% chance
+                  // 10% chance
+        ],
+      },
+      {
+        name: 'Golem',
+        image: '/pigs/1.png',
+        attackImage: '/pigs/0.png',
+        attack: 32,
+        defense: 23,
+        maxHp: 130,
+        agility: 15,
+        level: 7,
+        lootTable: [
+          { item: 'Gold Coin', dropRate: 0.5 },
+          { item: 'Health Potion', dropRate: 0.2 }, 
+          { item: 'Steel Club', dropRate: 0.2 },  // 60% chance
+          { item: 'Maple Axe', dropRate: 0.1 },
+          { item: 'Bear Trinket', dropRate: 0.1 },    // 30% chance
+          // 10% chancefde
+        ],
+      },
+      {
+        name: 'Yeti',
+        image: '/sprites4/2.png',
+        attackImage: '/sprites4/0.png',
+        attack: 36,
+        defense: 28,
+        maxHp: 150,
+        agility: 18,
+        level: 10,
+        lootTable: [
+          { item: 'Gold Coin', dropRate: 0.5 },
+          { item: 'Health Potion', dropRate: 0.3 }, 
+          { item: 'Bear Trinket', dropRate: 0.1 },    // 60% chance
+          { item: 'Zard', dropRate: 0.1 },   // 30% chance
+            // 10% chance
+        ],
+      },
+      {
+        name: 'Yak',
+        image: '/mobs/yakidle.png',
+        attackImage: '/mobs/yakatk.png',
+        attack: 41,
+        defense: 32,
+        maxHp: 170,
+        agility: 18,
+        level: 11,
+        lootTable: [
+          { item: 'Gold Coin', dropRate: 0.5 }, // 60% chance
+          { item: 'Zard Cleaver', dropRate: 0.1 },
+          { item: 'Health Potion', dropRate: 0.4 }, 
+          { item: 'Bath Robe', dropRate: 0.1 },     // 30% chance
+            // 10% chance
+        ],
+      },
+      {
+        name: 'Stumpy',
+        image: '/mobs/stumpidle.png',
+        attackImage: '/mobs/stumpatk.png',
+        attack: 49,
+        defense: 33,
+        maxHp: 200,
+        agility: 20,
+        level: 13,
+        lootTable: [
+          { item: 'Gold Coin', dropRate: 0.8 }, // 60% chance
+          { item: 'Zard Cleaver', dropRate: 0.2 },
+          { item: 'Health Potion', dropRate: 0.4 }, 
+          { item: 'Bath Robe', dropRate: 0.2 },     // 30% chance
+            // 10% chance
         ],
       },
       // Add more enemies as needed
     ],
     []
   );
-
   // Randomly select an enemy at the beginning and store in state
   const [selectedEnemy] = useState(() => {
     const randomEnemyIndex = Math.floor(Math.random() * enemies.length);
