@@ -199,7 +199,7 @@ const selectedAtkPng = Cookies.get("selectedAtkPng")
         agility: 18,
         level: 9,
         lootTable: [
-          { item: 'Gold Coin', dropRate: 0.1 }, // 60% chance
+          { item: 'Gold Coin', dropRate: 0.5 }, // 60% chance
           { item: 'Zard', dropRate: 0.1 },   // 30% chance
             // 10% chance
         ],
