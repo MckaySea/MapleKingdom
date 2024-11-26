@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Cookies from 'js-cookie';
 import { v4 as uuidv4 } from 'uuid';
 import CharacterCreation from './components/charCreation';
@@ -38,7 +38,30 @@ function App() {
       return updatedInventory;
     });
   };
+  const removeItemFromInventory = useCallback((itemId) => {
+    let removed = false;
+    setInventory((prevInventory) => {
+      const index = prevInventory.indexOf(itemId);
+      if (index === -1) {
+        console.warn(`Attempted to remove itemId ${itemId} which is not in inventory.`);
+        return prevInventory; // Item not found
+      }
+      const updatedInventory = [...prevInventory];
+      updatedInventory.splice(index, 1); // Remove one occurrence
+      removed = true;
+      try {
+        Cookies.set('inventory', JSON.stringify(updatedInventory), { expires: 7 });
+      } catch (error) {
+        console.error('Failed to save inventory to cookies:', error);
+      }
+      return updatedInventory;
+    });
+    return removed;
+  }, []);
 
+  const hasItemInInventory = useCallback((itemId) => {
+    return inventory.includes(itemId);
+  }, [inventory]);
   const equipItem = (itemId) => {
     const item = itemsList.find((itm) => itm.id === itemId);
 
@@ -314,13 +337,16 @@ function App() {
           onBackToLobby={() => setCurrentScene('lobby')}
         />
       ) : currentScene === 'battle' ? (
-        <BattleScene
-          selectedPng={selectedPng}
-          stats={stats}
-          onBackToLobby={handleBackToLobby}
-          addItemToInventory={addItemToInventory}
-          setLastLoot={setLastLoot}
-        />
+<BattleScene
+  selectedPng={selectedPng}
+  stats={stats}
+  onBackToLobby={handleBackToLobby}
+  addItemToInventory={addItemToInventory}
+  setLastLoot={setLastLoot}
+  inventory={inventory} // Pass inventory
+  removeItemFromInventory={removeItemFromInventory} // Pass remove function
+  hasItemInInventory={hasItemInInventory} // Pass the check function
+/>
       ) : null}
     </div>
   );

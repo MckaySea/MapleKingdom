@@ -16,11 +16,14 @@ import useAudio from './useAudio';
 import Cookies from 'js-cookie';
 import itemsList from '../itemslist';
 function BattleScene({
-  selectedPng, // Added prop for attack PNG
+  selectedPng,
   stats,
   onBackToLobby,
   addItemToInventory,
   setLastLoot,
+  inventory,
+  removeItemFromInventory,
+  hasItemInInventory, // Receive the function
 }) {
   const canvasWidth = window.innerWidth;
   const canvasHeight = window.innerHeight;
@@ -36,6 +39,7 @@ function BattleScene({
     agility: playerAgility,
     dexterity: playerDex,
     intellect: playerInt,
+    luck: playerLuck
   } = stats;
 
   // Player HP state
@@ -79,6 +83,7 @@ function BattleScene({
   const playHoverSound = useAudio('/sounds/hover.mp3');
   const playClickSound = useAudio('/sounds/clicker.mp3');
   const playAttackSound = useAudio('/sounds/attack.mp3');
+  const playHealSound = useAudio('/sounds/heal.mp3');
   const playDamageSound = useAudio('/sounds/damage.mp3');
   const playCriticalSound = useAudio('/sounds/crit.mp3');
   const playVictorySound = useAudio('/sounds/quest.mp3');
@@ -560,9 +565,21 @@ const handleLootDrops = useCallback(
           }
         }, 500);
       } else if (skillName === 'Heal') {
-        setPlayerHP((prevHP) => Math.min(prevHP + 15 + playerInt, playerMaxHp));
-        setTimeout(() => setCurrentTurn('Enemy'), 500);
-      } else if (skillName === 'Defend') {
+        const wasRemoved = removeItemFromInventory(1);
+
+        if (wasRemoved) {
+          // Perform the heal
+          setPlayerHP((prevHP) => Math.min(prevHP + 15 +((playerLuck * .8) + (playerInt * .8)), playerMaxHp));
+  
+          playHealSound(); // Play heal sound effect
+  
+          setTimeout(() => setCurrentTurn('Enemy'), 500);
+        } else {
+          // Alert the player that they don't have any Health Potions
+          alert("You don't have any Health Potions left!");
+          isClicked.current -= 1; // Allow the player to click again
+        }
+        } else if (skillName === 'Defend') {
         // Implement defend functionality if needed
         setTimeout(() => setCurrentTurn('Enemy'), 500);
       }
@@ -593,25 +610,43 @@ const handleLootDrops = useCallback(
             0.25
           );
   
-          // Generate a random number between 0 and 1
-          const rand = Math.random();
+          // Generate a random number between 0 and 1 for miss determination
+          const randMiss = Math.random();
   
-          if (rand < missChance) {
+          if (randMiss < missChance) {
             // Enemy missed
             console.log('Enemy missed!');
             playMissSound();
             return prevHP; // No damage taken
           } else {
             // Enemy hits
-            const damage = Math.max(0, enemyStats.attack - playerDefense);
-            const newHP = Math.max(prevHP - damage, 0);
-            if (newHP < prevHP) {
+            // Define critical hit chance (e.g., 10%)
+            const critChance = 0.1;
+            const randCrit = Math.random();
+            const isCritical = randCrit < critChance;
+  
+            // Calculate base damage
+            const baseDamage = Math.max(0, enemyStats.attack - playerDefense);
+  
+            // Apply critical multiplier if critical hit
+            const damage = isCritical ? Math.floor(baseDamage * 1.3) : baseDamage;
+  
+            // Optionally, play a different sound for critical hits
+            if (isCritical) {
+              console.log('Critical hit!');
+              playCriticalSound(); // Ensure you have this function defined
+            } else if (damage > 0) {
               playDamageSound();
             }
+  
+            // Calculate new HP, ensuring it doesn't go below 0
+            const newHP = Math.max(prevHP - damage, 0);
+  
             return newHP;
           }
         });
   
+        // After attack animation and damage calculation
         setTimeout(() => {
           setEnemyState('normal');
           setCurrentTurn('Player');
@@ -619,6 +654,7 @@ const handleLootDrops = useCallback(
         }, 500);
       }, 1000);
   
+      // Cleanup timeout on unmount or if dependencies change
       return () => clearTimeout(enemyActionTimeout);
     }
   }, [
@@ -627,10 +663,12 @@ const handleLootDrops = useCallback(
     playAttackSound,
     playDamageSound,
     playMissSound,
+    playCriticalSound, // Add this to dependencies if you use it
     playerAgility,
     playerDefense,
     enemyStats,
   ]);
+  
   
 
   // Handle enemy defeat

@@ -383,26 +383,32 @@ function PlayerStats() {
   }, [stats]);
 
   const allocateSkillPoint = (stat) => {
+    // Ensure stats exist and there are available skill points
     if (!stats || stats.skillPoints <= 0) return;
-
+  
+    // Determine the increment value based on the stat
+    const increment = stat === 'maxHp' ? 5 : 1;
+  
     // Update stats in local state
     const updatedStats = {
       ...stats,
-      [stat]: stats[stat] + 1, // Increase the selected stat
+      [stat]: stats[stat] + increment, // Increase the selected stat
       skillPoints: stats.skillPoints - 1, // Decrease skill points
     };
-
+  
+    // Update the state with the new stats
     setStats(updatedStats);
-
-    // Save updated stats back to cookies
+  
+    // Save updated stats back to cookies with a 7-day expiration
     Cookies.set('stats', JSON.stringify(updatedStats), { expires: 7 });
   };
+  
 
   if (!stats) {
     return <div>Loading stats...</div>; // Fallback if stats are not yet loaded
   }
 
-  const { level, skillPoints, attack, defense, maxHp, agility, currentExp, expToLevelUp, dexterity, intellect } = stats;
+  const { level, skillPoints, attack, defense, maxHp, agility, currentExp, expToLevelUp, dexterity, intellect, luck} = stats;
 
   return (
     <div className="player-stats-container" style={{ marginBottom: '20px' }}>
@@ -444,6 +450,12 @@ function PlayerStats() {
         <p>Intellect: {intellect}</p>
         {skillPoints > 0 && (
           <button onClick={() => allocateSkillPoint('intellect')}>+</button>
+        )}
+      </div>
+      <div className="stats-row" style={{ display: 'flex', gap: '10px' }}>
+        <p>Luck: {luck}</p>
+        {skillPoints > 0 && (
+          <button onClick={() => allocateSkillPoint('luck')}>+</button>
         )}
       </div>
     </div>
