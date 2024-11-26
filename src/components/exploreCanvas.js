@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import CanvasRenderer from './battleComponents/canvasRenderer';
 import Cookies from 'js-cookie';
 import ChatBox from './chatbox';
+
 // Function to retrieve cookie value
 const getCookie = (name) => {
   const value = `; ${document.cookie}`;
@@ -42,6 +43,9 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby }) {
     goldCoinImage.current.src = '/goldcoin.png';
   }, []);
 
+  // Determine WebSocket URL based on environment
+  const WS_URL = process.env.REACT_APP_WS_URL || 'ws://localhost:8080';
+
   // Handle nickname submission and WebSocket connection
   const handleNicknameSubmit = (e) => {
     e.preventDefault();
@@ -63,7 +67,8 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby }) {
     }
 
     // Initialize WebSocket connection
-    const ws = new WebSocket('wss://027d-2601-201-8a80-5780-d8d9-7bdc-8caa-a8f9.ngrok-free.app');    wsRef.current = ws;
+    const ws = new WebSocket(WS_URL);
+    wsRef.current = ws;
 
     ws.onopen = () => {
       console.log('WebSocket connection established');
@@ -163,7 +168,7 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby }) {
       }
 
       // Initialize WebSocket connection
-      const ws = new WebSocket('wss://027d-2601-201-8a80-5780-d8d9-7bdc-8caa-a8f9.ngrok-free.app');    
+      const ws = new WebSocket(WS_URL);
       wsRef.current = ws;
       ws.onopen = () => {
         console.log('WebSocket connection established');
@@ -352,42 +357,63 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby }) {
 
   return (
     <div style={{ position: 'relative', width: canvasWidth, height: canvasHeight }}>
-      {/* Render the game canvas */}
-      <CanvasRenderer
-        draw={draw}
-        width={canvasWidth}
-        height={canvasHeight}
-        onClick={(e) => {
-          const canvas = e.target;
-          const rect = canvas.getBoundingClientRect();
-          const mouseX = e.clientX - rect.left;
-          const mouseY = e.clientY - rect.top;
+      {!isNicknameSet ? (
+        // Render nickname input form
+        <form onSubmit={handleNicknameSubmit} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
+          <input
+            type="text"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+            placeholder="Enter your nickname"
+            required
+          />
+          <button type="submit">Join</button>
+        </form>
+      ) : (
+        <>
+          {/* Render the game canvas */}
+          <CanvasRenderer
+            draw={draw}
+            width={canvasWidth}
+            height={canvasHeight}
+            onClick={(e) => {
+              const canvas = e.target;
+              const rect = canvas.getBoundingClientRect();
+              const mouseX = e.clientX - rect.left;
+              const mouseY = e.clientY - rect.top;
 
-          if (mouseX >= 10 && mouseX <= 160 && mouseY >= 10 && mouseY <= 50) {
-            onBackToLobby();
-          }
-        }}
-      />
-      {/* Render the ChatBox */}
-      <div
-  style={{
-    position: 'absolute',
-    top: '10px',
-    right: '10px',
-    width: '280px',
-    height: '300px',
-  }}
->
-  <ChatBox
-    chatMessages={chatMessages}
-    currentMessage={currentMessage}
-    setCurrentMessage={setCurrentMessage}
-    onSendMessage={handleSendMessage}
-  />
-</div>
+              if (mouseX >= 10 && mouseX <= 160 && mouseY >= 10 && mouseY <= 50) {
+                onBackToLobby();
+              }
+            }}
+          />
+          {/* Render the ChatBox */}
+          <div
+            style={{
+              position: 'absolute',
+              top: '10px',
+              right: '10px',
+              width: '280px',
+              height: '300px',
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              borderRadius: '10px',
+              padding: '10px',
+              boxSizing: 'border-box',
+            }}
+          >
+            <ChatBox
+              chatMessages={chatMessages}
+              currentMessage={currentMessage}
+              setCurrentMessage={setCurrentMessage}
+              onSendMessage={handleSendMessage}
+              onKeyDown={handleKeyDown}
+              chatEndRef={chatEndRef}
+            />
+          </div>
+        </>
+      )}
     </div>
   );
-
 }
 
 export default ExploreCanvas;
