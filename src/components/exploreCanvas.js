@@ -63,7 +63,7 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby }) {
     }
 
     // Initialize WebSocket connection
-    const ws = new WebSocket('wss://027d-2601-201-8a80-5780-d8d9-7bdc-8caa-a8f9.ngrok-free.app');    wsRef.current = ws;
+    const ws = new WebSocket('wss://https://027d-2601-201-8a80-5780-d8d9-7bdc-8caa-a8f9.ngrok-free.app');    wsRef.current = ws;
 
     ws.onopen = () => {
       console.log('WebSocket connection established');
