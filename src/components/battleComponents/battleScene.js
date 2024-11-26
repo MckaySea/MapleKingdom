@@ -123,7 +123,7 @@ const selectedAtkPng = Cookies.get("selectedAtkPng")
         agility: 11,
         level: 3,
         lootTable: [
-          { item: 'Health Potion', dropRate: 0.3 }, // 40% chance
+          { item: 'Health Potion', dropRate: 0.2 }, // 40% chance
           { item: 'Katana', dropRate: 0.1 },
           { item: 'Pitch Fork', dropRate: 0.2 },   // 10% chance   // 10% chance
           { item: 'Maple Shield', dropRate: 0.1 }, 
@@ -140,7 +140,7 @@ const selectedAtkPng = Cookies.get("selectedAtkPng")
         agility: 10,
         level: 1,
         lootTable: [
-          { item: 'Health Potion', dropRate: 0.3 }, // 40% chance
+          { item: 'Health Potion', dropRate: 0.2 }, // 40% chance
           { item: 'Katana', dropRate: 0.1 },    // 10% chance
           { item: 'Maple Shield', dropRate: 0.1 },  
           { item: 'White Gloves', dropRate: 0.1 }, 
@@ -157,7 +157,7 @@ const selectedAtkPng = Cookies.get("selectedAtkPng")
         agility: 10,
         level: 2,
         lootTable: [
-          { item: 'Health Potion', dropRate: 0.3 }, // 40% chance
+          { item: 'Health Potion', dropRate: 0.2 }, // 40% chance
           { item: 'Katana', dropRate: 0.3 },    // 10% chance
           { item: 'Maple Shield', dropRate: 0.1 }, 
           { item: 'Pitch Fork', dropRate: 0.1 }, 
@@ -176,6 +176,7 @@ const selectedAtkPng = Cookies.get("selectedAtkPng")
         level: 5,
         lootTable: [
           { item: 'Gold Coin', dropRate: 0.4 },
+          { item: 'Health Potion', dropRate: 0.2 }, 
           { item: 'Round Mace', dropRate: 0.2 },  
           { item: 'Steel Club', dropRate: 0.1 },
           { item: 'White Gloves', dropRate: 0.1 },   // 60% chance // 30% chance
@@ -193,6 +194,7 @@ const selectedAtkPng = Cookies.get("selectedAtkPng")
         level: 7,
         lootTable: [
           { item: 'Gold Coin', dropRate: 0.5 },
+          { item: 'Health Potion', dropRate: 0.2 }, 
           { item: 'Steel Club', dropRate: 0.2 },  // 60% chance
           { item: 'Maple Axe', dropRate: 0.1 },
           { item: 'Bear Trinket', dropRate: 0.1 },    // 30% chance
@@ -210,6 +212,7 @@ const selectedAtkPng = Cookies.get("selectedAtkPng")
         level: 10,
         lootTable: [
           { item: 'Gold Coin', dropRate: 0.5 },
+          { item: 'Health Potion', dropRate: 0.3 }, 
           { item: 'Bear Trinket', dropRate: 0.1 },    // 60% chance
           { item: 'Zard', dropRate: 0.1 },   // 30% chance
             // 10% chance
@@ -227,6 +230,7 @@ const selectedAtkPng = Cookies.get("selectedAtkPng")
         lootTable: [
           { item: 'Gold Coin', dropRate: 0.5 }, // 60% chance
           { item: 'Zard Cleaver', dropRate: 0.1 },
+          { item: 'Health Potion', dropRate: 0.4 }, 
           { item: 'Bath Robe', dropRate: 0.1 },     // 30% chance
             // 10% chance
         ],
@@ -243,6 +247,7 @@ const selectedAtkPng = Cookies.get("selectedAtkPng")
         lootTable: [
           { item: 'Gold Coin', dropRate: 0.8 }, // 60% chance
           { item: 'Zard Cleaver', dropRate: 0.2 },
+          { item: 'Health Potion', dropRate: 0.4 }, 
           { item: 'Bath Robe', dropRate: 0.2 },     // 30% chance
             // 10% chance
         ],
