@@ -191,6 +191,8 @@ function App() {
         attack: 9,
         defense: 8,
         maxHp: 100,
+        currentMana: 50, // Default initial mana
+        maxMana: 50,     // Default maximum mana
         agility: 9,
         dexterity: 6,
         luck: 8,
@@ -205,6 +207,8 @@ function App() {
         attack: 9,
         defense: 8,
         maxHp: 100,
+        currentMana: 50, // Default initial mana
+        maxMana: 50,     // Default maximum mana
         agility: 9,
         dexterity: 6,
         luck: 8,
