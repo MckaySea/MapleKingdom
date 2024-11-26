@@ -328,6 +328,7 @@ function App() {
             lastLoot={lastLoot}
             setLastLoot={setLastLoot}
             equipped={equipped}
+            playerId={playerId}
             equipItem={equipItem}
             unequipItem={unequipItem}
             addItemToInventory={addItemToInventory}

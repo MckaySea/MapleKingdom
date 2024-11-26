@@ -4,10 +4,11 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import useAudio from './battleComponents/useAudio';
+
 import '../App.css';
 import Cookies from 'js-cookie';
 import CanvasRenderer from './battleComponents/canvasRenderer';
-
+import ChatBox from './chatbox';
 function Lobby({
   stats,
   selectedPng,
@@ -28,7 +29,8 @@ function Lobby({
   // UI State
   const [showLootModal, setShowLootModal] = useState(false);
   const [lootedItems, setLootedItems] = useState([]);
-
+  const [currentMessage, setCurrentMessage] = useState('');
+  
   // Tooltip State
   const [tooltip, setTooltip] = useState({
     visible: false,

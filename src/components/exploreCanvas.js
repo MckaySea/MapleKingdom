@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import CanvasRenderer from './battleComponents/canvasRenderer';
 import Cookies from 'js-cookie';
-
+import ChatBox from './chatbox';
 // Function to retrieve cookie value
 const getCookie = (name) => {
   const value = `; ${document.cookie}`;
@@ -163,9 +163,8 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby }) {
       }
 
       // Initialize WebSocket connection
-      const ws = new WebSocket('ws://localhost:8080'); // Update with your server URL if different
-      wsRef.current = ws;
-
+      const ws = new WebSocket('wss://027d-2601-201-8a80-5780-d8d9-7bdc-8caa-a8f9.ngrok-free.app');   
+       wsRef.current = ws;
       ws.onopen = () => {
         console.log('WebSocket connection established');
         ws.send(
@@ -353,136 +352,42 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby }) {
 
   return (
     <div style={{ position: 'relative', width: canvasWidth, height: canvasHeight }}>
-      {/* Render nickname form if nickname is not set */}
-      {!isNicknameSet && (
-        <div
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            padding: '20px',
-            borderRadius: '10px',
-            color: 'white',
-            textAlign: 'center',
-            zIndex: 10,
-          }}
-        >
-          <h2>Enter Your Nickname</h2>
-          <form onSubmit={handleNicknameSubmit}>
-            <input
-              type="text"
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              placeholder="Nickname"
-              style={{
-                padding: '10px',
-                width: '200px',
-                borderRadius: '5px',
-                border: 'none',
-                marginBottom: '10px',
-                fontSize: '16px',
-              }}
-              required
-            />
-            <br />
-            <button
-              type="submit"
-              style={{
-                padding: '10px 20px',
-                borderRadius: '5px',
-                border: 'none',
-                backgroundColor: '#28a745',
-                color: 'white',
-                fontSize: '16px',
-                cursor: 'pointer',
-              }}
-            >
-              Enter Chatroom
-            </button>
-          </form>
-        </div>
-      )}
+      {/* Render the game canvas */}
+      <CanvasRenderer
+        draw={draw}
+        width={canvasWidth}
+        height={canvasHeight}
+        onClick={(e) => {
+          const canvas = e.target;
+          const rect = canvas.getBoundingClientRect();
+          const mouseX = e.clientX - rect.left;
+          const mouseY = e.clientY - rect.top;
 
-      {/* Render the game canvas and chat only if nickname is set */}
-      {isNicknameSet && (
-        <>
-          <CanvasRenderer
-            draw={draw}
-            width={canvasWidth}
-            height={canvasHeight}
-            onClick={(e) => {
-              const canvas = e.target;
-              const rect = canvas.getBoundingClientRect();
-              const mouseX = e.clientX - rect.left;
-              const mouseY = e.clientY - rect.top;
-
-              if (mouseX >= 10 && mouseX <= 160 && mouseY >= 10 && mouseY <= 50) {
-                onBackToLobby();
-              }
-            }}
-          />
- {/* Chat Container */}
-<div
+          if (mouseX >= 10 && mouseX <= 160 && mouseY >= 10 && mouseY <= 50) {
+            onBackToLobby();
+          }
+        }}
+      />
+      {/* Render the ChatBox */}
+      <div
   style={{
     position: 'absolute',
     top: '10px',
     right: '10px',
     width: '280px',
     height: '300px',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    color: 'white',
-    padding: '10px',
-    borderRadius: '5px',
-    overflowY: 'auto',
-    fontSize: '14px',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'space-between',
   }}
 >
-  <div>
-    <strong>Chat</strong>
-  </div>
-  <div style={{ flex: 1, overflowY: 'auto', marginBottom: '10px' }}>
-    {chatMessages.map((msg, index) => (
-      <div
-        key={index}
-        style={{
-          marginBottom: '5px',
-          wordWrap: 'break-word',
-          wordBreak: 'break-word',
-        }}
-      >
-        <strong>{msg.nickname}:</strong> {msg.message}
-      </div>
-    ))}
-    <div ref={chatEndRef} />
-  </div>
-  {/* Chat Input */}
-  <input
-    type="text"
-    value={currentMessage}
-    onChange={(e) => setCurrentMessage(e.target.value)}
-    onKeyDown={handleKeyDown}
-    placeholder="Type a message..."
-    style={{
-      width: '100%',
-      height: '30px',
-      padding: '5px 10px',
-      fontSize: '14px',
-      borderRadius: '5px',
-      border: 'none',
-      outline: 'none',
-    }}
+  <ChatBox
+    chatMessages={chatMessages}
+    currentMessage={currentMessage}
+    setCurrentMessage={setCurrentMessage}
+    onSendMessage={handleSendMessage}
   />
 </div>
-
-        </>
-      )}
     </div>
   );
+
 }
 
 export default ExploreCanvas;
