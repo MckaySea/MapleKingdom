@@ -80,6 +80,7 @@ function BattleScene({
   const playClickSound = useAudio('/sounds/clicker.mp3');
   const playAttackSound = useAudio('/sounds/attack.mp3');
   const playDamageSound = useAudio('/sounds/damage.mp3');
+  const playCriticalSound = useAudio('/sounds/crit.mp3');
   const playVictorySound = useAudio('/sounds/quest.mp3');
   const playMissSound = useAudio('/sounds/miss.mp3');
 
@@ -136,7 +137,8 @@ const selectedAtkPng = Cookies.get("selectedAtkPng")
         lootTable: [
           { item: 'Health Potion', dropRate: 0.3 }, // 40% chance
           { item: 'Katana', dropRate: 0.1 },    // 10% chance
-          { item: 'Maple Shield', dropRate: 0.1 }, 
+          { item: 'Maple Shield', dropRate: 0.1 },  
+          { item: 'White Gloves', dropRate: 0.1 }, 
           { item: 'Gold Coin', dropRate: 0.1 },
         ],
       },
@@ -154,6 +156,7 @@ const selectedAtkPng = Cookies.get("selectedAtkPng")
           { item: 'Katana', dropRate: 0.3 },    // 10% chance
           { item: 'Maple Shield', dropRate: 0.1 }, 
           { item: 'Pitch Fork', dropRate: 0.1 }, 
+          { item: 'White Gloves', dropRate: 0.1 }, 
           { item: 'Gold Coin', dropRate: 0.1 },
         ],
       },
@@ -169,7 +172,8 @@ const selectedAtkPng = Cookies.get("selectedAtkPng")
         lootTable: [
           { item: 'Gold Coin', dropRate: 0.4 },
           { item: 'Round Mace', dropRate: 0.2 },  
-          { item: 'Steel Club', dropRate: 0.1 },  // 60% chance // 30% chance
+          { item: 'Steel Club', dropRate: 0.1 },
+          { item: 'White Gloves', dropRate: 0.1 },   // 60% chance // 30% chance
                   // 10% chance
         ],
       },
@@ -185,22 +189,56 @@ const selectedAtkPng = Cookies.get("selectedAtkPng")
         lootTable: [
           { item: 'Gold Coin', dropRate: 0.5 },
           { item: 'Steel Club', dropRate: 0.2 },  // 60% chance
-          { item: 'Maple Axe', dropRate: 0.1 },   // 30% chance
-                  // 10% chance
+          { item: 'Maple Axe', dropRate: 0.1 },
+          { item: 'Bear Trinket', dropRate: 0.1 },    // 30% chance
+          // 10% chancefde
         ],
       },
       {
         name: 'Yeti',
         image: '/sprites4/2.png',
         attackImage: '/sprites4/0.png',
-        attack: 32,
-        defense: 19,
-        maxHp: 130,
+        attack: 36,
+        defense: 28,
+        maxHp: 150,
         agility: 18,
-        level: 9,
+        level: 10,
+        lootTable: [
+          { item: 'Gold Coin', dropRate: 0.5 },
+          { item: 'Bear Trinket', dropRate: 0.1 },    // 60% chance
+          { item: 'Zard', dropRate: 0.1 },   // 30% chance
+            // 10% chance
+        ],
+      },
+      {
+        name: 'Yak',
+        image: '/mobs/yakidle.png',
+        attackImage: '/mobs/yakatk.png',
+        attack: 41,
+        defense: 32,
+        maxHp: 170,
+        agility: 18,
+        level: 11,
         lootTable: [
           { item: 'Gold Coin', dropRate: 0.5 }, // 60% chance
-          { item: 'Zard', dropRate: 0.1 },   // 30% chance
+          { item: 'Zard Cleaver', dropRate: 0.1 },
+          { item: 'Bath Robe', dropRate: 0.1 },     // 30% chance
+            // 10% chance
+        ],
+      },
+      {
+        name: 'Stumpy',
+        image: '/mobs/stumpidle.png',
+        attackImage: '/mobs/stumpatk.png',
+        attack: 49,
+        defense: 33,
+        maxHp: 200,
+        agility: 20,
+        level: 13,
+        lootTable: [
+          { item: 'Gold Coin', dropRate: 0.8 }, // 60% chance
+          { item: 'Zard Cleaver', dropRate: 0.2 },
+          { item: 'Bath Robe', dropRate: 0.2 },     // 30% chance
             // 10% chance
         ],
       },
@@ -488,15 +526,30 @@ const handleLootDrops = useCallback(
       if (skillName === 'Attack') {
         setPlayerState('attacking');
         playAttackSound();
-
+      
         setEnemyHP((prevHP) => {
-          const adjustedAttack = playerAttack + Math.floor(playerDex / 10);
+          // Calculate the bonus attack from dexterity
+          const dexAttackBonus = Math.floor(playerDex / 5);
+          const adjustedAttack = playerAttack + dexAttackBonus;
+      
+          // Calculate the damage
           const damage = Math.max(0, adjustedAttack - enemyStats.defense);
-
-          const newHP = Math.max(prevHP - damage, 0);
-          if (newHP < prevHP) {
-            playDamageSound();
+      
+          // Determine if we get a critical hit
+          const criticalChance = Math.floor(playerDex / 5) / 100; // 1% crit chance per 5 dexterity points
+          const isCriticalHit = Math.random() < criticalChance;
+      
+          // If it's a critical hit, multiply the damage by 1.5 and play critical sound
+          const finalDamage = isCriticalHit ? damage * 1.5 : damage;
+      
+          // Play the appropriate sound
+          if (isCriticalHit) {
+            playCriticalSound();  // Play critical hit sound
+          } else if (finalDamage > 0) {
+            playDamageSound();  // Play regular damage sound
           }
+      
+          const newHP = Math.max(prevHP - finalDamage, 0);
           return newHP;
         });
 

@@ -20,7 +20,7 @@ const itemsList = [
   {
     id: 3,
     name: 'Maple Staff',
-    description: 'Increases attack by 7.',
+    description: 'Increases attack by 6.',
     png: '/items/maplestaff.png',
     equippable: true,
     attack: 6,
@@ -105,6 +105,42 @@ const itemsList = [
     equippable: true,
     attack: 7,
     type: 'weapon', // Define type
+  },
+  {
+    id: 13,
+    name: 'Bath Robe',
+    description: 'Increases defense by 6.',
+    png: '/items/bathrobe.png',
+    equippable: true,
+    defense: 6,
+    type: 'Overall', // Define type
+  },
+  {
+    id: 14,
+    name: 'White Gloves',
+    description: 'Increases defense by 3.',
+    png: '/items/gloves.png',
+    equippable: true,
+    defense: 3,
+    type: 'Hands', // Define type
+  },
+  {
+    id: 15,
+    name: 'Earring',
+    description: 'Increases agility by 5.',
+    png: '/items/earring.png',
+    equippable: true,
+    agility: 5,
+    type: 'earring', // Define type
+  },
+  {
+    id: 16,
+    name: 'Bear Trinket',
+    description: 'Increases agility by 6.',
+    png: '/items/earring.png',
+    equippable: true,
+    agility: 6,
+    type: 'trinket', // Define type
   },
   // Add more items as needed
 ];
