@@ -143,7 +143,7 @@ const selectedAtkPng = Cookies.get("selectedAtkPng")
       {
         name: 'Baby Bunny',
         image: '/mobs/bunnyidle.png',
-        attackImage: '/sprites2/bunnyatk.png',
+        attackImage: '/mobs/bunnyatk.png',
         attack: 20,
         defense: 7,
         maxHp: 70,
