@@ -78,6 +78,8 @@ function App() {
           if (item.attack) newStats.attack += item.attack;
           if (item.defense) newStats.defense += item.defense;
           if (item.agility) newStats.agility += item.agility;
+          if (item.intellect) newStats.intellect += item.intellect;
+          if (item.dexterity) newStats.dexterity += item.dexterity;
           try {
             Cookies.set('stats', JSON.stringify(newStats), { expires: 7 });
           } catch (error) {

@@ -101,6 +101,7 @@ function BattleScene({
           { item: 'Pitch Fork', dropRate: 0.2 },   // 10% chance   // 10% chance
           { item: 'Maple Shield', dropRate: 0.1 }, 
           { item: 'Gold Coin', dropRate: 0.2 },
+          { item: 'Wood Staff', dropRate: 0.1 },
         ],
       },
       {
@@ -114,10 +115,11 @@ function BattleScene({
         level: 1,
         lootTable: [
           { item: 'Health Potion', dropRate: 0.2 }, // 40% chance
-          { item: 'Katana', dropRate: 0.1 },    // 10% chance
+          { item: 'Katana', dropRate: 0.2 },    // 10% chance
           { item: 'Maple Shield', dropRate: 0.1 },  
           { item: 'White Gloves', dropRate: 0.1 }, 
           { item: 'Gold Coin', dropRate: 0.1 },
+          { item: 'Wood Wand', dropRate: 0.2 },
         ],
       },
       {
@@ -136,6 +138,8 @@ function BattleScene({
           { item: 'Pitch Fork', dropRate: 0.1 }, 
           { item: 'White Gloves', dropRate: 0.1 }, 
           { item: 'Gold Coin', dropRate: 0.1 },
+          { item: 'Wood Wand', dropRate: 0.1 },
+          { item: 'Wood Staff', dropRate: 0.1 },
         ],
       },
       {
@@ -152,7 +156,9 @@ function BattleScene({
           { item: 'Health Potion', dropRate: 0.2 }, 
           { item: 'Round Mace', dropRate: 0.2 },  
           { item: 'Steel Club', dropRate: 0.1 },
-          { item: 'White Gloves', dropRate: 0.1 },   // 60% chance // 30% chance
+          { item: 'White Gloves', dropRate: 0.1 }, 
+          { item: 'Skull Staff', dropRate: 0.1 }, 
+            // 60% chance // 30% chance
                   // 10% chance
         ],
       },
@@ -170,6 +176,8 @@ function BattleScene({
           { item: 'Health Potion', dropRate: 0.2 }, 
           { item: 'Steel Club', dropRate: 0.2 },  // 60% chance
           { item: 'Maple Axe', dropRate: 0.1 },
+          { item: 'Skull Staff', dropRate: 0.1 }, 
+          { item: 'Intellect Earring', dropRate: 0.1 }, 
           { item: 'Bear Trinket', dropRate: 0.1 },    // 30% chance
           // 10% chancefde
         ],
@@ -186,7 +194,9 @@ function BattleScene({
         lootTable: [
           { item: 'Gold Coin', dropRate: 0.5 },
           { item: 'Health Potion', dropRate: 0.3 }, 
-          { item: 'Bear Trinket', dropRate: 0.1 },    // 60% chance
+          { item: 'Bear Trinket', dropRate: 0.1 },    
+          { item: 'Attack Earring', dropRate: 0.1 }, 
+          { item: 'Intellect Earring', dropRate: 0.1 }, // 60% chance
           { item: 'Zard', dropRate: 0.1 },   // 30% chance
             // 10% chance
         ],
@@ -203,7 +213,9 @@ function BattleScene({
         lootTable: [
           { item: 'Gold Coin', dropRate: 0.5 }, // 60% chance
           { item: 'Zard Cleaver', dropRate: 0.1 },
+          { item: 'Black Cape', dropRate: 0.1 },
           { item: 'Health Potion', dropRate: 0.4 }, 
+          { item: 'Maple Staff', dropRate: 0.1 }, 
           { item: 'Bath Robe', dropRate: 0.1 },     // 30% chance
             // 10% chance
         ],
@@ -221,6 +233,8 @@ function BattleScene({
           { item: 'Gold Coin', dropRate: 0.8 }, // 60% chance
           { item: 'Zard Cleaver', dropRate: 0.2 },
           { item: 'Health Potion', dropRate: 0.4 }, 
+          { item: 'Black Cape', dropRate: 0.1 },
+          { item: 'Maple Staff', dropRate: 0.1 }, 
           { item: 'Bath Robe', dropRate: 0.2 },     // 30% chance
             // 10% chance
         ],
@@ -302,7 +316,7 @@ function BattleScene({
   const playMissSound = useAudio('/sounds/miss.mp3');
   // New audio hooks for magic skills
   const playFireballSound = useAudio('/sounds/magic.mp3');
-  const playLightningSound = useAudio('/sounds/lightning.mp3');
+  const playLightningSound = useAudio('/sounds/magic.mp3');
   const playIceShieldSound = useAudio('/sounds/iceshield.mp3');
 
   // Load background image
@@ -362,7 +376,7 @@ function BattleScene({
     // Load Lightning Image
     lightningImage.current.src = '/projectiles/lightning.png';
     lightningImage.current.onerror = () => {
-      lightningImage.current.src = '/projectiles/defaultProjectile.png'; // Fallback image
+      lightningImage.current.src = '/projectiles/lightning.png'; // Fallback image
     };
 
     // Load Ice Shield Image (if used)
@@ -393,9 +407,9 @@ function BattleScene({
     () => [
       {
         name: 'Fireball',
-        icon: '/1.png',
+        icon: '/projectiles/fireball.png',
         description: 'Deals fire damage to the enemy. Costs 10 mana.',
-        manaCost: 10, // Mana cost for Fireball
+        manaCost: 15, // Mana cost for Fireball
         projectileImageSrc: '/projectiles/fireball.png', // Unique image for Fireball
         effect: () => {
           const cost = 10;
@@ -436,9 +450,9 @@ function BattleScene({
       },
       {
         name: 'Lightning Strike',
-        icon: '/2.png',
+        icon: '/projectiles/lightning.png',
         description: 'Deals lightning damage with a chance to stun. Costs 15 mana.',
-        manaCost: 15, // Mana cost for Lightning Strike
+        manaCost: 25, // Mana cost for Lightning Strike
         projectileImageSrc: '/projectiles/lightning.png', // Unique image for Lightning Strike
         effect: () => {
           const cost = 15;
@@ -456,7 +470,7 @@ function BattleScene({
             return newMana;
           });
 
-          const damage = Math.max(0, playerInt * 3 - enemyStats.defense);
+          const damage = Math.max(0, (playerInt * 1.3) + (playerDex / 2) - enemyStats.defense);
           const stunChance = 0.2; // 20% chance to stun
           playLightningSound();
 
@@ -838,64 +852,71 @@ function BattleScene({
         isHovered: hoveredButtonRef.current === 'turnButton',
       });
 
-      // Draw Magic Menu if active
-      if (showMagicMenu) {
-        // Draw semi-transparent overlay
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    // Draw Magic Menu if active
+if (showMagicMenu) {
+  // Draw semi-transparent overlay
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+  ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-        // Define magic menu dimensions
-        const menuWidth = 400;
-        const menuHeight = 300;
-        const menuX = (canvasWidth - menuWidth) / 2;
-        const menuY = (canvasHeight - menuHeight) / 2;
+  // Define magic menu dimensions
+  const menuWidth = 400;
+  const menuHeight = 300;
+  const menuX = (canvasWidth - menuWidth) / 2;
+  const menuY = (canvasHeight - menuHeight) / 2;
 
-        // Draw magic menu background
-        ctx.fillStyle = '#333';
-        ctx.fillRect(menuX, menuY, menuWidth, menuHeight);
+  // Draw magic menu background
+  ctx.fillStyle = '#333';
+  ctx.fillRect(menuX, menuY, menuWidth, menuHeight);
 
-        // Draw magic menu title
-        ctx.fillStyle = 'white';
-        ctx.font = '24px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('Select a Magic Skill', menuX + menuWidth / 2, menuY + 40);
+  // Draw magic menu title
+  ctx.fillStyle = 'white';
+  ctx.font = '24px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('Select a Magic Skill', menuX + menuWidth / 2, menuY + 40);
 
-        // Define magic skill button layout
-        const skillButtonWidth = 150;
-        const skillButtonHeight = 60;
-        const spacingX = 20;
-        const spacingY = 20;
-        const startX = menuX + spacingX;
-        const startY = menuY + 80;
+  // Define magic skill button layout
+  const skillButtonWidth = 150;
+  const skillButtonHeight = 60;
+  const spacingX = 20;
+  const spacingY = 20;
+  const startX = menuX + spacingX;
+  const startY = menuY + 80;
 
-        magicSkills.forEach((skill, index) => {
-          const cols = 2; // Number of columns
-          const row = Math.floor(index / cols);
-          const col = index % cols;
-          const x = startX + col * (skillButtonWidth + spacingX);
-          const y = startY + row * (skillButtonHeight + spacingY);
+  magicSkills.forEach((skill, index) => {
+    const cols = 2; // Number of columns
+    const row = Math.floor(index / cols);
+    const col = index % cols;
+    const x = startX + col * (skillButtonWidth + spacingX);
+    const y = startY + row * (skillButtonHeight + spacingY);
 
-          // Check if this skill is hovered
-          const isHovered =
-            hoveredMagicSkillRef.current === index;
+    // Check if this skill is hovered
+    const isHovered = hoveredMagicSkillRef.current === index;
 
-          // Draw skill button background
-          ctx.fillStyle = isHovered ? '#555' : '#777';
-          ctx.fillRect(x, y, skillButtonWidth, skillButtonHeight);
+    // Draw skill button background
+    ctx.fillStyle = isHovered ? '#555' : '#777';
+    ctx.fillRect(x, y, skillButtonWidth, skillButtonHeight);
 
-          // Draw skill icon
-          const skillIcon = new Image();
-          skillIcon.src = skill.icon;
-          skillIcon.onload = () => {
-            ctx.drawImage(skillIcon, x + 10, y + 10, 40, 40);
-          };
+    // Draw skill icon
+    const skillIcon = new Image();
+    skillIcon.src = skill.icon;
+    skillIcon.onload = () => {
+      ctx.drawImage(skillIcon, x + 10, y + 10, 40, 40);
+    };
 
-          // Draw skill name
-          ctx.fillStyle = 'white';
-          ctx.font = '18px Arial';
-          ctx.textAlign = 'left';
-          ctx.fillText(skill.name, x + 60, y + 25);
-        });
+    // Draw skill name (centered)
+    ctx.fillStyle = 'white';
+    ctx.font = '18px Arial';
+    ctx.textAlign = 'center'; // Center text horizontally
+    ctx.textBaseline = 'middle'; // Center text vertically
+
+    // Calculate the center of the button
+    const textX = x + skillButtonWidth / 2;
+    const textY = y + skillButtonHeight / 2;
+
+    // Draw the skill name at the center of the button
+    ctx.fillText(skill.name, textX, textY);
+  });
+
       }
 
       // Increment angles for circular motion

@@ -20,10 +20,10 @@ const itemsList = [
   {
     id: 3,
     name: 'Maple Staff',
-    description: 'Increases attack by 6.',
+    description: 'Increases intellect by 6.',
     png: '/items/maplestaff.png',
     equippable: true,
-    attack: 6,
+    intellect: 6,
     type: 'weapon', // Define type
   },
   {
@@ -141,6 +141,61 @@ const itemsList = [
     equippable: true,
     agility: 6,
     type: 'trinket', // Define type
+  },
+  {
+    id: 17,
+    name: 'Wood Wand',
+    description: 'Increases Intellect by 1.',
+    png: '/items/woodwand.png',
+    equippable: true,
+    intellect: 1,
+    type: 'weapon', // Define type
+  },
+  {
+    id: 18,
+    name: 'Wood Staff',
+    description: 'Increases Intellect by 2.',
+    png: '/items/woodstaff.png',
+    equippable: true,
+    intellect: 2,
+    type: 'weapon', // Define type
+  },
+  {
+    id: 19,
+    name: 'Attack Earring',
+    description: 'Increases attack by 5.',
+    png: '/items/atkearring.png',
+    equippable: true,
+    attack: 5,
+    type: 'earring', // Define type
+  },
+  {
+    id: 20,
+    name: 'Intellect Earring',
+    description: 'Increases Intellect by 5.',
+    png: '/items/earring.png',
+    equippable: true,
+    intellect: 5,
+    type: 'earring', // Define type
+  },
+  {
+    id: 21,
+    name: 'Skull Staff',
+    description: 'Increases Intellect by 5.',
+    png: '/items/skullstaff.png',
+    equippable: true,
+    intellect: 5,
+    type: 'weapon', // Define type
+  },
+  {
+    id: 22,
+    name: 'Black Cape',
+    description: 'Increases defense and attack by 5.',
+    png: '/items/skullstaff.png',
+    equippable: true,
+    attack: 5,
+    defense: 5,
+    type: 'cape', // Define type
   },
   // Add more items as needed
 ];
