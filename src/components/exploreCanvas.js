@@ -13,7 +13,7 @@ const getCookie = (name) => {
   return null;
 };
 
-function ExploreCanvas({ playerId, playerLevel, onBackToLobby, stats}) {
+function ExploreCanvas({ playerId, playerLevel, onBackToLobby, atk, def, int, luck, dex, agility, maxHp}) {
   const canvasWidth = window.innerWidth;
   const canvasHeight = window.innerHeight;
 
@@ -78,6 +78,13 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby, stats}) {
           id: playerId,
           png: pngFromCookie,
           level: playerLevel,
+          maxHp: maxHp,
+          atk: atk,
+          def: def,
+          dex: dex,
+          int: int,
+          agility: agility,
+
           nickname: nickname.trim(), // Send nickname to server
           position: { x: canvasWidth / 2, y: canvasHeight / 2 }, // Initial position
         })
@@ -178,6 +185,12 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby, stats}) {
             id: playerId,
             png: pngFromCookie,
             level: playerLevel,
+            maxHp: maxHp,
+            atk: atk,
+            def: def,
+            dex: dex,
+            int: int,
+            agility: agility,
             nickname: storedNickname, // Send nickname from cookie
             position: { x: canvasWidth / 2, y: canvasHeight / 2 }, // Initial position
           })
@@ -308,15 +321,19 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby, stats}) {
       Object.values(otherPlayers).forEach((player) => {
         const img = new Image();
         img.src = player.png;
-
+      
         if (img.complete && img.naturalWidth > 0) {
           ctx.drawImage(img, player.x, player.y, 100, 100);
         }
-
+      
         ctx.fillStyle = 'darkblue';
-        ctx.font = '18px Press Start 2P  ';
-        ctx.fillText(`${player.nickname} | HP:${stats.maxHp}`, player.x + 50, player.y - 30);
-        ctx.fillText(`LVL: ${player.level} ● ATK:${stats.attack} ● DEF:${stats.defense} ● INT:${stats.intellect} ● Agility:${stats.agility} ● LUCK:${stats.luck}   `, player.x + 50, player.y - 10);
+        ctx.font = '18px Press Start 2P';
+        ctx.fillText(`${player.nickname} | HP:${maxHp}`, player.x + 50, player.y - 30);
+        ctx.fillText(
+          `LVL: ${player.level} ● ATK:${atk} ● DEF:${def} ● INT:${int} ● Agility:${agility} ● LUCK:${luck}`,
+          player.x + 50,
+          player.y - 10
+        );
       });
 
       // Draw gold coins

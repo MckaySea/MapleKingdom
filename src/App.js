@@ -338,8 +338,13 @@ function App() {
         )
       ) : currentScene === 'explore' ? (
         <ExploreCanvas
-        stats={stats}
-
+          atk={stats?.attack || 1}
+          def={stats?.defense || 1}
+          int={stats?.intellect || 1}
+          dex={stats?.dexterity || 1}
+          agility={stats?.agility || 1}
+          luck={stats?.attack || 1}
+          maxHp={stats?.maxHp || 1}
           selectedPng={selectedPng}
           playerId={playerId}
           playerLevel={stats?.level || 1}
