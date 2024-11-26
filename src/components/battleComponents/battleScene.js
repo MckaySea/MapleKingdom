@@ -427,7 +427,7 @@ function BattleScene({
             return newMana;
           });
 
-          const damage = Math.max(0, playerInt * 1.4 - enemyStats.defense);
+          const damage = Math.round(Math.max(0, playerInt * 1.4 - enemyStats.defense));
           playFireballSound();
 
           // Calculate dynamic speed and size
@@ -452,7 +452,7 @@ function BattleScene({
         name: 'Lightning Strike',
         icon: '/projectiles/lightning.png',
         description: 'Deals lightning damage with a chance to stun. Costs 15 mana.',
-        manaCost: 25, // Mana cost for Lightning Strike
+        manaCost: 15, // Mana cost for Lightning Strike
         projectileImageSrc: '/projectiles/lightning.png', // Unique image for Lightning Strike
         effect: () => {
           const cost = 15;
@@ -470,7 +470,7 @@ function BattleScene({
             return newMana;
           });
 
-          const damage = Math.max(0, (playerInt * 1.3) + (playerDex / 2) - enemyStats.defense);
+          const damage = Math.round(Math.max(0, (playerInt * 1.3) + (playerDex / 2) - enemyStats.defense));
           const stunChance = 0.2; // 20% chance to stun
           playLightningSound();
 
