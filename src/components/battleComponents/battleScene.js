@@ -119,9 +119,9 @@ const selectedAtkPng = Cookies.get("selectedAtkPng")
         lootTable: [
           { item: 'Health Potion', dropRate: 0.3 }, // 40% chance
           { item: 'Katana', dropRate: 0.1 },
-          { item: 'Round Mace', dropRate: 0.1 },
           { item: 'Pitch Fork', dropRate: 0.2 },   // 10% chance   // 10% chance
           { item: 'Maple Shield', dropRate: 0.1 }, 
+          { item: 'Gold Coin', dropRate: 0.2 },
         ],
       },
       {
@@ -137,20 +137,37 @@ const selectedAtkPng = Cookies.get("selectedAtkPng")
           { item: 'Health Potion', dropRate: 0.3 }, // 40% chance
           { item: 'Katana', dropRate: 0.2 },    // 10% chance
           { item: 'Maple Shield', dropRate: 0.1 }, 
+          { item: 'Gold Coin', dropRate: 0.1 },
+        ],
+      },
+      {
+        name: 'Alien',
+        image: '/mobs/alienidle.png',
+        attackImage: '/mobs/alienatk.png',
+        attack: 23,
+        defense: 12,
+        maxHp: 95,
+        agility: 15,
+        level: 6,
+        lootTable: [
+          { item: 'Gold Coin', dropRate: 0.4 },
+          { item: 'Round Mace', dropRate: 0.2 },  
+          { item: 'Steel Club', dropRate: 0.1 },  // 60% chance // 30% chance
+                  // 10% chance
         ],
       },
       {
         name: 'Golem',
         image: '/pigs/1.png',
         attackImage: '/pigs/0.png',
-        attack: 29,
-        defense: 17,
+        attack: 32,
+        defense: 23,
         maxHp: 130,
         agility: 15,
         level: 8,
         lootTable: [
-          { item: 'Gold Coin', dropRate: 0.4 },
-          { item: 'Steel Club', dropRate: 0.1 },  // 60% chance
+          { item: 'Gold Coin', dropRate: 0.5 },
+          { item: 'Steel Club', dropRate: 0.2 },  // 60% chance
           { item: 'Maple Axe', dropRate: 0.1 },   // 30% chance
                   // 10% chance
         ],

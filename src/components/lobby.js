@@ -314,7 +314,7 @@ function Lobby({
         </button>
 
         {/* Manage Inventory Buttons */}
-        <div className="manage-inventory-buttons" style={{ marginTop: '20px' }}>
+        {/* <div className="manage-inventory-buttons" style={{ marginTop: '20px' }}>
           <button onClick={() => addItemToInventory(1)} style={manageButtonStyle}>Add Health Potion</button>
           <button onClick={() => addItemToInventory(2)} style={manageButtonStyle}>Add Mana Potion</button>
           <button onClick={() => addItemToInventory(3)} style={manageButtonStyle}>Add Maple Staff</button>
@@ -323,7 +323,7 @@ function Lobby({
           <button onClick={() => addItemToInventory(6)} style={manageButtonStyle}>Add Zard</button>
           <button onClick={() => addItemToInventory(7)} style={manageButtonStyle}>Add Maple Axe</button>
           <button onClick={() => addItemToInventory(8)} style={manageButtonStyle}>Add Katana</button>
-        </div>
+        </div> */}
 
         {/* Loot Modal */}
         {showLootModal && (
