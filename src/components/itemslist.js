@@ -20,19 +20,19 @@ const itemsList = [
   {
     id: 3,
     name: 'Maple Staff',
-    description: 'Increases attack by 5.',
+    description: 'Increases attack by 7.',
     png: '/items/maplestaff.png',
     equippable: true,
-    attack: 7,
+    attack: 6,
     type: 'weapon', // Define type
   },
   {
     id: 4,
     name: 'Maple Shield',
-    description: 'Increases defense by 5.',
+    description: 'Increases defense by 6.',
     png: '/items/mapleshield.png',
     equippable: true,
-    defense: 5,
+    defense: 6,
     type: 'shield', // Define type
   },
   {
@@ -46,28 +46,64 @@ const itemsList = [
   {
     id: 6,
     name: 'Zard',
-    description: 'Increases attack by 10.',
+    description: 'Increases attack by 6.',
     png: '/items/zard.png',
     equippable: true,
-    attack: 10,
+    attack: 6,
     type: 'weapon', // Define type
   },
   {
     id: 7,
     name: 'Maple Axe',
-    description: 'Increases attack by 7.',
+    description: 'Increases attack by 5.',
     png: '/items/mapleaxe.png',
     equippable: true,
-    attack: 7,
+    attack: 5,
     type: 'weapon', // Define type
   },
   {
     id: 8,
     name: 'Katana',
-    description: 'Increases attack by 6.',
+    description: 'Increases attack by 1.',
     png: '/items/katana.png',
     equippable: true,
-    attack: 6,
+    attack: 1,
+    type: 'weapon', // Define type
+  },
+  {
+    id: 9,
+    name: 'Round Mace',
+    description: 'Increases attack by 3.',
+    png: '/items/roundmace.png',
+    equippable: true,
+    attack: 3,
+    type: 'weapon', // Define type
+  },
+  {
+    id: 10,
+    name: 'Pitch Fork',
+    description: 'Increases attack by 2.',
+    png: '/items/pitchfork.png',
+    equippable: true,
+    attack: 2,
+    type: 'weapon', // Define type
+  },
+  {
+    id: 11,
+    name: 'Steel club',
+    description: 'Increases attack by 4.',
+    png: '/items/steelclub.png',
+    equippable: true,
+    attack: 4,
+    type: 'weapon', // Define type
+  },
+  {
+    id: 12,
+    name: 'Zard Cleaver',
+    description: 'Increases attack by 7.',
+    png: '/items/zardcleaver.png',
+    equippable: true,
+    attack: 7,
     type: 'weapon', // Define type
   },
   // Add more items as needed

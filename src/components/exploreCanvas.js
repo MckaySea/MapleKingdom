@@ -75,16 +75,19 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby }) {
       const data = JSON.parse(event.data);
 
       if (data.type === 'playerJoined') {
-        setOtherPlayers((prev) => ({
-          ...prev,
-          [data.player.id]: {
-            ...data.player,
-            x: Math.random() * canvasWidth,
-            y: Math.random() * canvasHeight,
-            dx: (Math.random() - 0.5) * 2,
-            dy: (Math.random() - 0.5) * 2,
-          },
-        }));
+        setOtherPlayers((prev) => {
+          if (prev[data.player.id]) return prev; // Prevent duplicates based on uuid
+          return {
+            ...prev,
+            [data.player.id]: {
+              ...data.player,
+              x: Math.random() * canvasWidth,
+              y: Math.random() * canvasHeight,
+              dx: (Math.random() - 0.5) * 2,
+              dy: (Math.random() - 0.5) * 2,
+            },
+          };
+        });
       }
 
       if (data.type === 'playerLeft') {
@@ -97,6 +100,7 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby }) {
 
       if (data.type === 'allPlayers') {
         const playersWithMovement = Object.keys(data.players).reduce((acc, id) => {
+          if (acc[id]) return acc; // Prevent duplicates based on uuid
           acc[id] = {
             ...data.players[id],
             x: Math.random() * canvasWidth,
@@ -146,8 +150,6 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby }) {
 
     return () => clearInterval(interval);
   }, [canvasWidth, canvasHeight]);
-
-
 
   const draw = useCallback(
     (ctx) => {

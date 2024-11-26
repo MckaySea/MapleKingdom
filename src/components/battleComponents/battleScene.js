@@ -118,7 +118,9 @@ const selectedAtkPng = Cookies.get("selectedAtkPng")
         level: 3,
         lootTable: [
           { item: 'Health Potion', dropRate: 0.3 }, // 40% chance
-          { item: 'Maple Staff', dropRate: 0.2 },   // 10% chance
+          { item: 'Katana', dropRate: 0.1 },
+          { item: 'Round Mace', dropRate: 0.1 },
+          { item: 'Pitch Fork', dropRate: 0.2 },   // 10% chance   // 10% chance
           { item: 'Maple Shield', dropRate: 0.1 }, 
         ],
       },
@@ -133,7 +135,7 @@ const selectedAtkPng = Cookies.get("selectedAtkPng")
         level: 1,
         lootTable: [
           { item: 'Health Potion', dropRate: 0.3 }, // 40% chance
-          { item: 'Maple Staff', dropRate: 0.1 },   // 10% chance
+          { item: 'Katana', dropRate: 0.2 },    // 10% chance
           { item: 'Maple Shield', dropRate: 0.1 }, 
         ],
       },
@@ -141,15 +143,15 @@ const selectedAtkPng = Cookies.get("selectedAtkPng")
         name: 'Golem',
         image: '/pigs/1.png',
         attackImage: '/pigs/0.png',
-        attack: 26,
-        defense: 15,
-        maxHp: 110,
+        attack: 29,
+        defense: 17,
+        maxHp: 130,
         agility: 15,
-        level: 5,
+        level: 8,
         lootTable: [
-          { item: 'Gold Coin', dropRate: 0.4 }, // 60% chance
+          { item: 'Gold Coin', dropRate: 0.4 },
+          { item: 'Steel Club', dropRate: 0.1 },  // 60% chance
           { item: 'Maple Axe', dropRate: 0.1 },   // 30% chance
-          { item: 'Maple Shield', dropRate: 0.2 },
                   // 10% chance
         ],
       },
@@ -163,7 +165,7 @@ const selectedAtkPng = Cookies.get("selectedAtkPng")
         agility: 18,
         level: 9,
         lootTable: [
-          { item: 'Gold Coin', dropRate: 0.3 }, // 60% chance
+          { item: 'Gold Coin', dropRate: 0.1 }, // 60% chance
           { item: 'Zard', dropRate: 0.1 },   // 30% chance
             // 10% chance
         ],
