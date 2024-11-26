@@ -338,6 +338,8 @@ function App() {
         )
       ) : currentScene === 'explore' ? (
         <ExploreCanvas
+        stats={stats}
+
           selectedPng={selectedPng}
           playerId={playerId}
           playerLevel={stats?.level || 1}

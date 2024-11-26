@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import CanvasRenderer from './battleComponents/canvasRenderer';
 import Cookies from 'js-cookie';
 import ChatBox from './chatbox';
-
+import { FaArrowUp } from 'react-icons/fa'; // example icon import
 // Function to retrieve cookie value
 const getCookie = (name) => {
   const value = `; ${document.cookie}`;
@@ -13,7 +13,7 @@ const getCookie = (name) => {
   return null;
 };
 
-function ExploreCanvas({ playerId, playerLevel, onBackToLobby }) {
+function ExploreCanvas({ playerId, playerLevel, onBackToLobby, stats}) {
   const canvasWidth = window.innerWidth;
   const canvasHeight = window.innerHeight;
 
@@ -313,15 +313,14 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby }) {
           ctx.drawImage(img, player.x, player.y, 100, 100);
         }
 
-        ctx.fillStyle = 'red';
-        ctx.font = '22px Arial';
-        ctx.fillText(`Lv ${player.level}`, player.x + 50, player.y - 10);
+        ctx.fillStyle = 'darkblue';
+        ctx.font = '18px Press Start 2P  ';
+        ctx.fillText(`${player.nickname} | HP:${stats.maxHp}`, player.x + 50, player.y - 30);
+        ctx.fillText(`LVL: ${player.level} ● ATK:${stats.attack} ● DEF:${stats.defense} ● INT:${stats.intellect} ● Agility:${stats.agility} ● LUCK:${stats.luck}   `, player.x + 50, player.y - 10);
       });
 
       // Draw gold coins
-      goldCoins.forEach((coin) => {
-        ctx.drawImage(goldCoinImage.current, coin.x, coin.y, 30, 30);
-      });
+ 
 
       // Draw "Back to Lobby" button
       ctx.fillStyle = '#FF6347';
@@ -391,9 +390,9 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby }) {
           <div
             style={{
               position: 'absolute',
-              top: '10px',
+              bottom: '10px',
               right: '10px',
-              width: '280px',
+              width: '380px',
               height: '300px',
               backgroundColor: 'rgba(0, 0, 0, 0.5)',
               borderRadius: '10px',
