@@ -6,12 +6,12 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import useAudio from './battleComponents/useAudio';
 
 import '../App.css';
-import Cookies from 'js-cookie';
 import CanvasRenderer from './battleComponents/canvasRenderer';
 import ChatBox from './chatbox';
 
 function Lobby({
   stats,
+  setStats, // Receive setStats as a prop
   selectedPng,
   onEnterExplore,
   inventory,
@@ -275,7 +275,7 @@ function Lobby({
       >
         <h1 className="inventory-title">Welcome to the Lobby!</h1>
         {/* Display Player Stats */}
-        <PlayerStats stats={stats} /> {/* Pass stats as prop */}
+        <PlayerStats stats={stats} setStats={setStats} /> {/* Pass setStats as prop */}
 
         {/* Display Equipped Items */}
         <EquippedItems
@@ -370,45 +370,33 @@ const manageButtonStyle = {
 };
 
 // PlayerStats Component
-function PlayerStats({ stats }) { // Accept stats as prop
-  const [localStats, setLocalStats] = useState(null);
-
-  // Load stats from props on component mount and when stats prop changes
-  useEffect(() => {
-    if (stats) {
-      setLocalStats(stats);
-    }
-  }, [stats]);
-
+function PlayerStats({ stats, setStats }) { // Accept setStats as prop
   const allocateSkillPoint = (stat) => {
     // Ensure stats exist and there are available skill points
-    if (!localStats || localStats.skillPoints <= 0) return;
-  
+    if (!stats || stats.skillPoints <= 0) return;
+
     // Determine the increment value based on the stat
     const increment = stat === 'maxHp' ? 5 : 1;
-  
-    // Update stats in local state
+
+    // Update the centralized stats state
     const updatedStats = {
-      ...localStats,
-      [stat]: localStats[stat] + increment, // Increase the selected stat
-      skillPoints: localStats.skillPoints - 1, // Decrease skill points
+      ...stats,
+      [stat]: stats[stat] + increment, // Increase the selected stat
+      skillPoints: stats.skillPoints - 1, // Decrease skill points
     };
-  
+
     // Update the state with the new stats
-    setLocalStats(updatedStats);
-  
-    // Save updated stats to cookies with a 7-day expiration
-    Cookies.set('stats', JSON.stringify(updatedStats), { expires: 7 });
-  
+    setStats(updatedStats);
+
     console.log('Player stats have been updated:', updatedStats);
   };
 
 
-  if (!localStats) {
+  if (!stats) {
     return <div>Loading stats...</div>; // Fallback if stats are not yet loaded
   }
 
-  const { level, skillPoints, attack, defense, maxHp, agility, currentExp, expToLevelUp, dexterity, intellect, luck} = localStats;
+  const { level, skillPoints, attack, defense, maxHp, agility, currentExp, expToLevelUp, dexterity, intellect, luck } = stats;
 
   return (
     <div className="player-stats-container" style={{ marginBottom: '20px' }}>
@@ -506,8 +494,13 @@ function InventoryGrid({ inventory, itemsList, setTooltip, equipped, equipItem, 
     if (item && !item.equippable) {
       alert(`Used ${item.name}!`);
       // Implement logic to use the item, e.g., remove from inventory if consumable
+      // Example:
+      // if (item.consumable) {
+      //   unequipItem(itemId); // Or another appropriate removal function
+      // }
     }
   };
+  
   const handleMouseEnter = (item, e) => {
     const rect = e.target.getBoundingClientRect();
     playHoverSound();
@@ -517,9 +510,11 @@ function InventoryGrid({ inventory, itemsList, setTooltip, equipped, equipItem, 
       position: { x: rect.left + rect.width / 2, y: rect.top },
     });
   };
+  
   const handleMouseLeave = () => {
     setTooltip({ visible: false, content: '', position: { x: 0, y: 0 } });
   };
+  
   const playHoverSound = useAudio('/sounds/hover.mp3'); // Optional: Tooltip sound
 
   return (

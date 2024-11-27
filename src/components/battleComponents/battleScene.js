@@ -15,12 +15,13 @@ import HPBar from './hpBar';
 import ManaBar from './manaBar'; // Import ManaBar
 import Portrait from './portrait';
 import useAudio from './useAudio';
-import Cookies from 'js-cookie';
 import itemsList from '../itemslist';
 
 function BattleScene({
   selectedPng,
+  selectedAtkPng,
   stats,
+  setStats, // Receive setStats as a prop
   onBackToLobby,
   addItemToInventory,
   setLastLoot,
@@ -96,10 +97,10 @@ function BattleScene({
         agility: 11,
         level: 3,
         lootTable: [
-          { item: 'Health Potion', dropRate: 0.2 }, // 40% chance
+          { item: 'Health Potion', dropRate: 0.2 },
           { item: 'Katana', dropRate: 0.1 },
-          { item: 'Pitch Fork', dropRate: 0.2 },   // 10% chance   // 10% chance
-          { item: 'Maple Shield', dropRate: 0.1 }, 
+          { item: 'Pitch Fork', dropRate: 0.2 },
+          { item: 'Maple Shield', dropRate: 0.1 },
           { item: 'Gold Coin', dropRate: 0.2 },
           { item: 'Wood Staff', dropRate: 0.1 },
         ],
@@ -114,10 +115,10 @@ function BattleScene({
         agility: 10,
         level: 1,
         lootTable: [
-          { item: 'Health Potion', dropRate: 0.2 }, // 40% chance
-          { item: 'Katana', dropRate: 0.2 },    // 10% chance
-          { item: 'Maple Shield', dropRate: 0.1 },  
-          { item: 'White Gloves', dropRate: 0.1 }, 
+          { item: 'Health Potion', dropRate: 0.2 },
+          { item: 'Katana', dropRate: 0.2 },
+          { item: 'Maple Shield', dropRate: 0.1 },
+          { item: 'White Gloves', dropRate: 0.1 },
           { item: 'Gold Coin', dropRate: 0.1 },
           { item: 'Wood Wand', dropRate: 0.2 },
         ],
@@ -132,11 +133,11 @@ function BattleScene({
         agility: 10,
         level: 2,
         lootTable: [
-          { item: 'Health Potion', dropRate: 0.2 }, // 40% chance
-          { item: 'Katana', dropRate: 0.3 },    // 10% chance
-          { item: 'Maple Shield', dropRate: 0.1 }, 
-          { item: 'Pitch Fork', dropRate: 0.1 }, 
-          { item: 'White Gloves', dropRate: 0.1 }, 
+          { item: 'Health Potion', dropRate: 0.2 },
+          { item: 'Katana', dropRate: 0.3 },
+          { item: 'Maple Shield', dropRate: 0.1 },
+          { item: 'Pitch Fork', dropRate: 0.1 },
+          { item: 'White Gloves', dropRate: 0.1 },
           { item: 'Gold Coin', dropRate: 0.1 },
           { item: 'Wood Wand', dropRate: 0.1 },
           { item: 'Wood Staff', dropRate: 0.1 },
@@ -153,13 +154,11 @@ function BattleScene({
         level: 5,
         lootTable: [
           { item: 'Gold Coin', dropRate: 0.4 },
-          { item: 'Health Potion', dropRate: 0.2 }, 
-          { item: 'Round Mace', dropRate: 0.2 },  
+          { item: 'Health Potion', dropRate: 0.2 },
+          { item: 'Round Mace', dropRate: 0.2 },
           { item: 'Steel Club', dropRate: 0.1 },
-          { item: 'White Gloves', dropRate: 0.1 }, 
-          { item: 'Skull Staff', dropRate: 0.1 }, 
-            // 60% chance // 30% chance
-                  // 10% chance
+          { item: 'White Gloves', dropRate: 0.1 },
+          { item: 'Skull Staff', dropRate: 0.1 },
         ],
       },
       {
@@ -173,13 +172,12 @@ function BattleScene({
         level: 7,
         lootTable: [
           { item: 'Gold Coin', dropRate: 0.5 },
-          { item: 'Health Potion', dropRate: 0.2 }, 
-          { item: 'Steel Club', dropRate: 0.2 },  // 60% chance
+          { item: 'Health Potion', dropRate: 0.2 },
+          { item: 'Steel Club', dropRate: 0.2 },
           { item: 'Maple Axe', dropRate: 0.1 },
-          { item: 'Skull Staff', dropRate: 0.1 }, 
-          { item: 'Intellect Earring', dropRate: 0.1 }, 
-          { item: 'Bear Trinket', dropRate: 0.1 },    // 30% chance
-          // 10% chancefde
+          { item: 'Skull Staff', dropRate: 0.1 },
+          { item: 'Intellect Earring', dropRate: 0.1 },
+          { item: 'Bear Trinket', dropRate: 0.1 },
         ],
       },
       {
@@ -193,12 +191,11 @@ function BattleScene({
         level: 10,
         lootTable: [
           { item: 'Gold Coin', dropRate: 0.5 },
-          { item: 'Health Potion', dropRate: 0.3 }, 
-          { item: 'Bear Trinket', dropRate: 0.1 },    
-          { item: 'Attack Earring', dropRate: 0.1 }, 
-          { item: 'Intellect Earring', dropRate: 0.1 }, // 60% chance
-          { item: 'Zard', dropRate: 0.1 },   // 30% chance
-            // 10% chance
+          { item: 'Health Potion', dropRate: 0.3 },
+          { item: 'Bear Trinket', dropRate: 0.1 },
+          { item: 'Attack Earring', dropRate: 0.1 },
+          { item: 'Intellect Earring', dropRate: 0.1 },
+          { item: 'Zard', dropRate: 0.1 },
         ],
       },
       {
@@ -211,13 +208,12 @@ function BattleScene({
         agility: 18,
         level: 11,
         lootTable: [
-          { item: 'Gold Coin', dropRate: 0.5 }, // 60% chance
+          { item: 'Gold Coin', dropRate: 0.5 },
           { item: 'Zard Cleaver', dropRate: 0.1 },
           { item: 'Black Cape', dropRate: 0.1 },
-          { item: 'Health Potion', dropRate: 0.4 }, 
-          { item: 'Maple Staff', dropRate: 0.1 }, 
-          { item: 'Bath Robe', dropRate: 0.1 },     // 30% chance
-            // 10% chance
+          { item: 'Health Potion', dropRate: 0.4 },
+          { item: 'Maple Staff', dropRate: 0.1 },
+          { item: 'Bath Robe', dropRate: 0.1 },
         ],
       },
       {
@@ -230,19 +226,19 @@ function BattleScene({
         agility: 20,
         level: 13,
         lootTable: [
-          { item: 'Gold Coin', dropRate: 0.8 }, // 60% chance
+          { item: 'Gold Coin', dropRate: 0.8 },
           { item: 'Zard Cleaver', dropRate: 0.2 },
-          { item: 'Health Potion', dropRate: 0.4 }, 
+          { item: 'Health Potion', dropRate: 0.4 },
           { item: 'Black Cape', dropRate: 0.1 },
-          { item: 'Maple Staff', dropRate: 0.1 }, 
-          { item: 'Bath Robe', dropRate: 0.2 },     // 30% chance
-            // 10% chance
+          { item: 'Maple Staff', dropRate: 0.1 },
+          { item: 'Bath Robe', dropRate: 0.2 },
         ],
       },
       // Add more enemies as needed
     ],
     []
   );
+
   // Randomly select an enemy at the beginning and store in state
   const [selectedEnemy] = useState(() => {
     const randomEnemyIndex = Math.floor(Math.random() * enemies.length);
@@ -326,7 +322,6 @@ function BattleScene({
   // Load player images
   const playerImage = useRef(new Image());
   playerImage.current.src = selectedPng;
-  const selectedAtkPng = Cookies.get('selectedAtkPng');
   const playerAttackImage = useRef(new Image());
   playerAttackImage.current.src = selectedAtkPng; // Use selectedAtkPng instead of hardcoded path
 
@@ -419,12 +414,9 @@ function BattleScene({
           }
 
           // Deduct mana
-          setPlayerMana((prevMana) => {
-            const newMana = prevMana - cost;
-            // Update the stats and cookies
-            const updatedStats = { ...stats, currentMana: newMana };
-            Cookies.set('stats', JSON.stringify(updatedStats), { expires: 7 });
-            return newMana;
+          setStats((prevStats) => {
+            const newMana = prevStats.currentMana - cost;
+            return { ...prevStats, currentMana: newMana };
           });
 
           const damage = Math.round(Math.max(0, playerInt * 1.4 - enemyStats.defense));
@@ -462,12 +454,9 @@ function BattleScene({
           }
 
           // Deduct mana
-          setPlayerMana((prevMana) => {
-            const newMana = prevMana - cost;
-            // Update the stats and cookies
-            const updatedStats = { ...stats, currentMana: newMana };
-            Cookies.set('stats', JSON.stringify(updatedStats), { expires: 7 });
-            return newMana;
+          setStats((prevStats) => {
+            const newMana = prevStats.currentMana - cost;
+            return { ...prevStats, currentMana: newMana };
           });
 
           const damage = Math.round(Math.max(0, (playerInt * 1.3) + (playerDex / 2) - enemyStats.defense));
@@ -507,12 +496,9 @@ function BattleScene({
           }
 
           // Deduct mana
-          setPlayerMana((prevMana) => {
-            const newMana = prevMana - cost;
-            // Update the stats and cookies
-            const updatedStats = { ...stats, currentMana: newMana };
-            Cookies.set('stats', JSON.stringify(updatedStats), { expires: 7 });
-            return newMana;
+          setStats((prevStats) => {
+            const newMana = prevStats.currentMana - cost;
+            return { ...prevStats, currentMana: newMana };
           });
 
           setPlayerState('defending');
@@ -544,12 +530,13 @@ function BattleScene({
     ],
     [
       playerInt,
+      playerDex,
       enemyStats.defense,
       playFireballSound,
       playLightningSound,
       playIceShieldSound,
       playerMana,
-      stats, // Add stats as a dependency
+      setStats,
     ]
   );
 
@@ -822,15 +809,9 @@ function BattleScene({
       );
 
       // Draw HP Bar
-      ctx.fillStyle = 'red';
-      ctx.font = '20px Arial';
-      ctx.textAlign = 'left';
       // HPBar component is rendered separately
 
       // Draw Mana Bar
-      ctx.fillStyle = 'blue';
-      ctx.font = '20px Arial';
-      ctx.textAlign = 'left';
       // ManaBar component is rendered separately
 
       // Draw buttons on canvas
@@ -852,71 +833,70 @@ function BattleScene({
         isHovered: hoveredButtonRef.current === 'turnButton',
       });
 
-    // Draw Magic Menu if active
-if (showMagicMenu) {
-  // Draw semi-transparent overlay
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-  ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      // Draw Magic Menu if active
+      if (showMagicMenu) {
+        // Draw semi-transparent overlay
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-  // Define magic menu dimensions
-  const menuWidth = 400;
-  const menuHeight = 300;
-  const menuX = (canvasWidth - menuWidth) / 2;
-  const menuY = (canvasHeight - menuHeight) / 2;
+        // Define magic menu dimensions
+        const menuWidth = 400;
+        const menuHeight = 300;
+        const menuX = (canvasWidth - menuWidth) / 2;
+        const menuY = (canvasHeight - menuHeight) / 2;
 
-  // Draw magic menu background
-  ctx.fillStyle = '#333';
-  ctx.fillRect(menuX, menuY, menuWidth, menuHeight);
+        // Draw magic menu background
+        ctx.fillStyle = '#333';
+        ctx.fillRect(menuX, menuY, menuWidth, menuHeight);
 
-  // Draw magic menu title
-  ctx.fillStyle = 'white';
-  ctx.font = '24px Arial';
-  ctx.textAlign = 'center';
-  ctx.fillText('Select a Magic Skill', menuX + menuWidth / 2, menuY + 40);
+        // Draw magic menu title
+        ctx.fillStyle = 'white';
+        ctx.font = '24px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Select a Magic Skill', menuX + menuWidth / 2, menuY + 40);
 
-  // Define magic skill button layout
-  const skillButtonWidth = 150;
-  const skillButtonHeight = 60;
-  const spacingX = 20;
-  const spacingY = 20;
-  const startX = menuX + spacingX;
-  const startY = menuY + 80;
+        // Define magic skill button layout
+        const skillButtonWidth = 150;
+        const skillButtonHeight = 60;
+        const spacingX = 20;
+        const spacingY = 20;
+        const startX = menuX + spacingX;
+        const startY = menuY + 80;
 
-  magicSkills.forEach((skill, index) => {
-    const cols = 2; // Number of columns
-    const row = Math.floor(index / cols);
-    const col = index % cols;
-    const x = startX + col * (skillButtonWidth + spacingX);
-    const y = startY + row * (skillButtonHeight + spacingY);
+        magicSkills.forEach((skill, index) => {
+          const cols = 2; // Number of columns
+          const row = Math.floor(index / cols);
+          const col = index % cols;
+          const x = startX + col * (skillButtonWidth + spacingX);
+          const y = startY + row * (skillButtonHeight + spacingY);
 
-    // Check if this skill is hovered
-    const isHovered = hoveredMagicSkillRef.current === index;
+          // Check if this skill is hovered
+          const isHovered = hoveredMagicSkillRef.current === index;
 
-    // Draw skill button background
-    ctx.fillStyle = isHovered ? '#555' : '#777';
-    ctx.fillRect(x, y, skillButtonWidth, skillButtonHeight);
+          // Draw skill button background
+          ctx.fillStyle = isHovered ? '#555' : '#777';
+          ctx.fillRect(x, y, skillButtonWidth, skillButtonHeight);
 
-    // Draw skill icon
-    const skillIcon = new Image();
-    skillIcon.src = skill.icon;
-    skillIcon.onload = () => {
-      ctx.drawImage(skillIcon, x + 10, y + 10, 40, 40);
-    };
+          // Draw skill icon
+          const skillIcon = new Image();
+          skillIcon.src = skill.icon;
+          skillIcon.onload = () => {
+            ctx.drawImage(skillIcon, x + 10, y + 10, 40, 40);
+          };
 
-    // Draw skill name (centered)
-    ctx.fillStyle = 'white';
-    ctx.font = '18px Arial';
-    ctx.textAlign = 'center'; // Center text horizontally
-    ctx.textBaseline = 'middle'; // Center text vertically
+          // Draw skill name (centered)
+          ctx.fillStyle = 'white';
+          ctx.font = '18px Arial';
+          ctx.textAlign = 'center'; // Center text horizontally
+          ctx.textBaseline = 'middle'; // Center text vertically
 
-    // Calculate the center of the button
-    const textX = x + skillButtonWidth / 2;
-    const textY = y + skillButtonHeight / 2;
+          // Calculate the center of the button
+          const textX = x + skillButtonWidth / 2;
+          const textY = y + skillButtonHeight / 2;
 
-    // Draw the skill name at the center of the button
-    ctx.fillText(skill.name, textX, textY);
-  });
-
+          // Draw the skill name at the center of the button
+          ctx.fillText(skill.name, textX, textY);
+        });
       }
 
       // Increment angles for circular motion
@@ -983,12 +963,13 @@ if (showMagicMenu) {
     setPlayerHP(updatedStats.maxHp);
     setPlayerMana(updatedStats.maxMana);
 
-    // Save updated stats to cookies
-    Cookies.set('stats', JSON.stringify(updatedStats), { expires: 7 });
+    // Update the centralized stats state
+    setStats(updatedStats);
 
     console.log('Player stats have been reset to maximum values.');
-  }, [stats]);
+  }, [stats, setStats]);
 
+  // Function to handle loot drops
   const handleLootDrops = useCallback(
     (lootTable) => {
       const obtainedLoot = [];
@@ -1066,7 +1047,7 @@ if (showMagicMenu) {
           }
         }, 500);
       } else if (skillName === 'Heal') {
-        const wasRemoved = removeItemFromInventory(1);
+        const wasRemoved = removeItemFromInventory(1); // Assuming itemId 1 is Health Potion
 
         if (wasRemoved) {
           // Perform the heal
@@ -1100,17 +1081,19 @@ if (showMagicMenu) {
     },
     [
       playerAttack,
-      enemyStats.defense,
-      enemyHP,
-      playAttackSound,
-      playDamageSound,
-      playClickSound,
-      playerMaxHp,
       playerDex,
       playerInt,
       playerLuck,
+      enemyStats.defense,
+      playAttackSound,
+      playDamageSound,
       playCriticalSound,
+      playHealSound,
+      playClickSound,
+      playMissSound,
       removeItemFromInventory,
+      playerMaxHp,
+      enemyHP,
     ]
   );
 
@@ -1152,7 +1135,7 @@ if (showMagicMenu) {
             // Optionally, play a different sound for critical hits
             if (isCritical) {
               console.log('Critical hit!');
-              playCriticalSound(); // Ensure you have this function defined
+              playCriticalSound(); // Play critical hit sound
             } else if (damage > 0) {
               playDamageSound();
             }
@@ -1190,7 +1173,8 @@ if (showMagicMenu) {
   const handleEnemyDefeat = useCallback(() => {
     const expGain = 50; // Experience points for defeating the enemy
     const newExp = currentExp + expGain;
-console.log(expGain, newExp)
+    console.log(expGain, newExp);
+
     let updatedStats = { ...stats }; // Make a copy of stats
 
     // Check for level up
@@ -1211,28 +1195,19 @@ console.log(expGain, newExp)
         // currentMana: Math.min(updatedStats.currentMana + 10, Math.floor(updatedStats.maxMana * 1.1)), // Regenerate some mana
       };
 
-      // Keep player HP unchanged during level-up or adjust as needed
+      // Optionally, handle level-up related stat changes here
       setPlayerHP(updatedStats.maxHp);
       setPlayerMana(updatedStats.currentMana);
     } else {
-    
+      updatedStats.currentExp = newExp;
     }
-    updatedStats.currentExp = newExp;
+
     // Reset dynamic stats to maximum values after battle
     updatedStats.currentHP = updatedStats.maxHp;
     updatedStats.currentMana = updatedStats.maxMana;
 
-    // Save updated stats to cookies
-    try {
-      console.log("entry")
-      Cookies.set('stats', JSON.stringify(updatedStats), { expires: 7, path: '/' });
-      console.log('Stats cookie set successfully:', Cookies.get('stats'));
-    } catch (error) {
-      console.error('Error setting stats cookie:', error);
-    }
-    // Update local state
-    setPlayerHP(updatedStats.maxHp);
-    setPlayerMana(updatedStats.maxMana);
+    // Update the centralized stats state
+    setStats(updatedStats);
 
     setShowVictoryModal(true);
     playVictorySound();
@@ -1253,6 +1228,7 @@ console.log(expGain, newExp)
     onBackToLobby,
     selectedEnemy,
     handleLootDrops,
+    setStats, // Ensure setStats is included
   ]);
 
   // Watch for enemyHP changes to handle enemy defeat
@@ -1265,9 +1241,6 @@ console.log(expGain, newExp)
 
   // Handle player defeat
   const handlePlayerDefeat = useCallback(() => {
-    // Reset stats to maximum vhandalues
-    // resetStatsToMax();
-
     setShowDefeatModal(true);
     playDefeatSound(); // Play defeat sound effect
 
@@ -1275,7 +1248,7 @@ console.log(expGain, newExp)
     setTimeout(() => {
       onBackToLobby();
     }, 5000);
-  }, [resetStatsToMax, playDefeatSound, onBackToLobby]);
+  }, [playDefeatSound, onBackToLobby]);
 
   // Mouse event handlers for the canvas
   const handleMouseMove = useCallback(
@@ -1404,7 +1377,7 @@ console.log(expGain, newExp)
               setTimeout(() => {
                 setPlayerState('normal');
                 setCurrentTurn('Enemy');
-                isClicked.current = 0; // Reset for the next player turn
+                isClicked.current = 0; // Reset click
               }, 1000);
             }
           }
@@ -1536,7 +1509,6 @@ console.log(expGain, newExp)
           <button
             onClick={() => {
               playClickSound();
-              resetStatsToMax(); // Reset stats before returning
               onBackToLobby();
             }}
             style={{
@@ -1580,7 +1552,6 @@ console.log(expGain, newExp)
           <button
             onClick={() => {
               playClickSound();
-              resetStatsToMax(); // Reset stats before returning
               onBackToLobby();
             }}
             style={{
