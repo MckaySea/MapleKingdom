@@ -14,7 +14,7 @@ function ManaBar({ mana, maxMana, x, y, width }) {
 
   const barContainerStyle = {
     width: '100%',
-    height: 10,
+    height: 15,
     backgroundColor: 'grey',
     position: 'relative',
     marginTop: 5, // Space between HP and Mana bars
@@ -30,7 +30,7 @@ function ManaBar({ mana, maxMana, x, y, width }) {
     marginTop: 2,
     color: 'blue',
     textAlign: 'center',
-    fontSize: 12,
+    fontSize: 14,
   };
 
   return (

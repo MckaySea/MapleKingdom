@@ -191,7 +191,7 @@ const itemsList = [
     id: 22,
     name: 'Black Cape',
     description: 'Increases defense and attack by 5.',
-    png: '/items/skullstaff.png',
+    png: '/items/blackcape.png',
     equippable: true,
     attack: 5,
     defense: 5,

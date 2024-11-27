@@ -792,19 +792,27 @@ function BattleScene({
       }
 
       // Draw turn indicator
-      ctx.fillStyle = 'white';
+      ctx.fillStyle = 'red';
       ctx.font = '30px Arial';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(`${currentTurn}'s Turn`, centerX, 50);
 
       // Draw experience and level
-      ctx.fillStyle = 'red';
+      ctx.fillStyle = 'White';
       ctx.font = '20px Arial';
       ctx.textAlign = 'left';
-      ctx.fillText(`Level: ${playerLevel}`, 20, canvasHeight - 180);
+      ctx.fillText(`Level: ${playerLevel}`, 20, canvasHeight - 210);
+      ctx.fillStyle = 'red';
       ctx.fillText(
-        `EXP: ${currentExp} / ${expToLevelUp}`,
+        `HP: ${currentHP}`,
+        20,
+        canvasHeight - 180
+      );
+         // Draw experience and level
+         ctx.fillStyle = 'blue';
+      ctx.fillText(
+        `MP: ${currentMana}`,
         20,
         canvasHeight - 150
       );
@@ -1458,16 +1466,16 @@ function BattleScene({
       <HPBar
         hp={playerHP}
         maxHP={playerMaxHp}
-        x={20}
-        y={canvasHeight - 130}
+        x={100}
+        y={canvasHeight - 90}
         width={80}
       />
       {/* Mana Bar */}
       <ManaBar
         mana={playerMana}
         maxMana={maxMana}
-        x={20}
-        y={canvasHeight - 110} // Position it under the HP bar
+        x={100}
+        y={canvasHeight - 50} // Position it under the HP bar
         width={80}
       />
       <HPBar
