@@ -1,5 +1,3 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable react-hooks/exhaustive-deps */
 // src/components/ExploreCanvas.js
 import React, { useState, useEffect, useRef, useCallback, useContext } from 'react';
 import CanvasRenderer from './battleComponents/canvasRenderer';
@@ -27,13 +25,11 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby, atk, def, int, lu
   const [isNicknameSet, setIsNicknameSet] = useState(false); // Flag to check if nickname is set
 
   // Access WebSocket context
-  const { chatMessages, sendMessage, isConnected, players, sendMove, currentPosition } = useContext(WebSocketContext);
+  const { chatMessages, sendMessage, isConnected, players, sendMove, setPlayers } = useContext(WebSocketContext);
 
   // References
   const backgroundImage = useRef(new Image());
   const chatEndRef = useRef(null);
-
-  // Cache for player images
   const playerImages = useRef({});
 
   // Load background and gold coin images
@@ -45,8 +41,6 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby, atk, def, int, lu
     backgroundImage.current.onerror = (e) => {
       console.error('Failed to load background image:', e);
     };
-
-
   }, []);
 
   // Initialize player PNG from cookies or other source
@@ -67,116 +61,60 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby, atk, def, int, lu
     }
   }, [chatMessages]);
 
-  // Movement state
-  const movementRef = useRef({
-    up: false,
-    down: false,
-    left: false,
-    right: false,
-  });
+  // Handle click events to set target position
+  const handleCanvasClick = (e) => {
+    const canvas = e.target;
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
 
-  const speed = 0.08; // Movement speed in pixels per frame
+    // Check if "Back to Lobby" button was clicked
+    if (mouseX >= 10 && mouseX <= 160 && mouseY >= 10 && mouseY <= 50) {
+      onBackToLobby();
+      return;
+    }
 
-  // Handle keyboard events
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      switch (e.key) {
-        case 'ArrowUp':
-        case 'w':
-        case 'W':
-          movementRef.current.up = true;
-          break;
-        case 'ArrowDown':
-        case 's':
-        case 'S':
-          movementRef.current.down = true;
-          break;
-        case 'ArrowLeft':
-        case 'a':
-        case 'A':
-          movementRef.current.left = true;
-          break;
-        case 'ArrowRight':
-        case 'd':
-        case 'D':
-          movementRef.current.right = true;
-          break;
-        default:
-          break;
-      }
-    };
+    // Set target position
+    const newTarget = { x: mouseX - 50, y: mouseY - 50 }; // Adjust for player size (100x100)
 
-    const handleKeyUp = (e) => {
-      switch (e.key) {
-        case 'ArrowUp':
-        case 'w':
-        case 'W':
-          movementRef.current.up = false;
-          break;
-        case 'ArrowDown':
-        case 's':
-        case 'S':
-          movementRef.current.down = false;
-          break;
-        case 'ArrowLeft':
-        case 'a':
-        case 'A':
-          movementRef.current.left = false;
-          break;
-        case 'ArrowRight':
-        case 'd':
-        case 'D':
-          movementRef.current.right = false;
-          break;
-        default:
-          break;
-      }
-    };
+    // Boundary checks
+    newTarget.x = Math.max(0, Math.min(canvasWidth - 100, newTarget.x));
+    newTarget.y = Math.max(0, Math.min(canvasHeight - 100, newTarget.y));
 
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
+    // Update local player's target position in players state
+    setPlayers((prevPlayers) => ({
+      ...prevPlayers,
+      [playerId]: {
+        ...prevPlayers[playerId],
+        targetPosition: newTarget,
+      },
+    }));
 
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, []);
+    // Send target position to the server
+    if (isConnected) {
+      sendMove(newTarget);
+    }
+  };
 
-  // Game loop for handling movement
-  useEffect(() => {
-    let animationFrameId;
+  // Implement rate limiting for clicks (20 clicks per second)
+  const clickTimestampsRef = useRef([]);
 
-    const updatePosition = () => {
-      let { up, down, left, right } = movementRef.current;
-      let newX = currentPosition.x;
-      let newY = currentPosition.y;
+  const handleCanvasClickWithRateLimit = (e) => {
+    const now = Date.now();
+    const timestamps = clickTimestampsRef.current.filter((timestamp) => now - timestamp < 1000); // Keep clicks within the last second
 
-      if (up) newY -= speed;
-      if (down) newY += speed;
-      if (left) newX -= speed;
-      if (right) newX += speed;
+    if (timestamps.length >= 20) {
+      console.warn('Click rate limit exceeded');
+      return; // Ignore this click
+    }
 
-      // Boundary checks
-      newX = Math.max(0, Math.min(canvasWidth - 100, newX));
-      newY = Math.max(0, Math.min(canvasHeight - 100, newY));
+    // Add current timestamp
+    timestamps.push(now);
+    clickTimestampsRef.current = timestamps;
 
-      // If position has changed, send move
-      if (newX !== currentPosition.x || newY !== currentPosition.y) {
-        const updatedPosition = { x: newX, y: newY };
-        if (isConnected) { // Ensure WebSocket is connected before sending
-          sendMove(updatedPosition);
-        }
-      }
-
-      animationFrameId = requestAnimationFrame(updatePosition);
-    };
-
-    updatePosition();
-
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, [currentPosition, canvasWidth, canvasHeight, sendMove, isConnected]);
+    // Proceed with movement handling
+    handleCanvasClick(e);
+  };
 
   // Draw function for the canvas
   const draw = useCallback(
@@ -185,9 +123,6 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby, atk, def, int, lu
 
       ctx.clearRect(0, 0, canvasWidth, canvasHeight);
       ctx.drawImage(backgroundImage.current, 0, 0, canvasWidth, canvasHeight);
-
-      // Draw gold coins (if any)
-
 
       // Draw all players
       Object.values(players).forEach((player) => {
@@ -198,7 +133,7 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby, atk, def, int, lu
           img.onload = () => {
             playerImages.current[player.id] = img;
             // Redraw after image loads
-            draw(ctx); // Safe to call now
+            draw(ctx);
           };
           img.onerror = (e) => {
             console.error(`Failed to load image for player ${player.id}: ${player.png}`, e);
@@ -206,27 +141,29 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby, atk, def, int, lu
         }
 
         const img = playerImages.current[player.id];
+        const position = player.currentPosition || player.position; // Use server-sent position
+
         if (img) {
-          ctx.drawImage(img, player.position.x, player.position.y, 100, 100);
+          ctx.drawImage(img, position.x, position.y, 100, 100);
         } else {
           // Draw a placeholder rectangle while the image loads or if it fails
           ctx.fillStyle = 'gray';
-          ctx.fillRect(player.position.x, player.position.y, 100, 100);
+          ctx.fillRect(position.x, position.y, 100, 100);
           ctx.fillStyle = 'white';
           ctx.font = '14px Arial';
           ctx.textAlign = 'center';
-          ctx.fillText('Loading...', player.position.x + 50, player.position.y + 50);
+          ctx.fillText('Loading...', position.x + 50, position.y + 50);
         }
 
         // Draw player info
         ctx.fillStyle = 'darkblue';
         ctx.font = '18px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText(`${player.nickname} | HP:${player.maxHp}`, player.position.x + 50, player.position.y - 30);
+        ctx.fillText(`${player.nickname} | HP:${player.maxHp}`, position.x + 50, position.y - 30);
         ctx.fillText(
           `LVL: ${player.level} ● ATK:${player.atk} ● DEF:${player.def} ● INT:${player.int} ● Agility:${player.agility} ● LUCK:${player.luck}`,
-          player.position.x + 50,
-          player.position.y - 10
+          position.x + 50,
+          position.y - 10
         );
       });
 
@@ -238,7 +175,7 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby, atk, def, int, lu
       ctx.textAlign = 'center';
       ctx.fillText('Back to Lobby', 85, 30);
     },
-    [players, canvasWidth, canvasHeight, backgroundLoaded, atk, def, int, luck, dex, agility, maxHp ] // Removed 'draw'
+    [players, canvasWidth, canvasHeight, backgroundLoaded]
   );
 
   // Handle sending messages via context
@@ -270,54 +207,64 @@ function ExploreCanvas({ playerId, playerLevel, onBackToLobby, atk, def, int, lu
     Cookies.set('nickname', nickname.trim(), { expires: 7 });
   };
 
+  // Render nickname submission form if not set
+  if (!isNicknameSet) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <form onSubmit={handleNicknameSubmit} style={{ textAlign: 'center' }}>
+          <h2>Enter Your Nickname</h2>
+          <input
+            type="text"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+            required
+            style={{ padding: '10px', fontSize: '16px' }}
+          />
+          <br />
+          <button type="submit" style={{ marginTop: '10px', padding: '10px 20px', fontSize: '16px' }}>
+            Join Game
+          </button>
+        </form>
+      </div>
+    );
+  }
+
   return (
     <div style={{ position: 'relative', width: canvasWidth, height: canvasHeight }}>
-   
-        <>
-          {playerPng ? (
-            <>
-              {/* Render the game canvas */}
-              <CanvasRenderer
-                draw={draw}
-                width={canvasWidth}
-                height={canvasHeight}
-                onClick={(e) => {
-                  const canvas = e.target;
-                  const rect = canvas.getBoundingClientRect();
-                  const mouseX = e.clientX - rect.left;
-                  const mouseY = e.clientY - rect.top;
-
-                  if (mouseX >= 10 && mouseX <= 160 && mouseY >= 10 && mouseY <= 50) {
-                    onBackToLobby();
-                  }
-                }}
-              />
-              {/* Render the ChatBox globally */}
-              <div
-                style={{
-                  position: 'absolute',
-                  bottom: '20px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: '400px',
-                  maxHeight: '300px',
-                  backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                  borderRadius: '10px',
-                  padding: '10px',
-                  boxSizing: 'border-box',
-                  overflow: 'hidden',
-                }}
-              >
-                <ChatBox />
-                <div ref={chatEndRef} />
-              </div>
-            </>
-          ) : (
-            <div>Loading player image...</div>
-          )}
-        </>
-   
-   
+      <>
+        {playerPng ? (
+          <>
+            {/* Render the game canvas */}
+            <CanvasRenderer
+              draw={draw}
+              width={canvasWidth}
+              height={canvasHeight}
+              onClick={handleCanvasClickWithRateLimit} // Attach rate-limited click handler
+            />
+            {/* Render the ChatBox globally */}
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '20px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: '400px',
+                maxHeight: '300px',
+                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                borderRadius: '10px',
+                padding: '10px',
+                boxSizing: 'border-box',
+                overflow: 'hidden',
+              }}
+            >
+              <ChatBox />
+              <div ref={chatEndRef} />
+            </div>
+          </>
+        ) : (
+          <div>Loading player image...</div>
+        )}
+      </>
     </div>
   );
 }
