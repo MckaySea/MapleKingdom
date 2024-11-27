@@ -130,7 +130,7 @@
   pointer-events: none; /* Allows mouse events to pass through */
   max-width: 200px;
   z-index: 300; /* Above other elements */
-  white-space: pre-wrap;
+  whitefpl-space: pre-wrap;
   font-family: 'Press Start 2P', cursive; /* Retro font */
   font-size: 10px;
   border: 2px dashed #fff; /* Retro border */
@@ -295,7 +295,7 @@
 
 /* Player Stats Container */
 .player-stats-container {
-  display: flex;
+  display: grid;
   flex-direction: column;
   align-items: center; /* Centers items horizontally */
   margin-bottom: 40px; /* Space below the stats */

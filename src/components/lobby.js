@@ -4,11 +4,212 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import useAudio from './battleComponents/useAudio';
-
-import '../App.css';
+import { GiMountedKnight } from "react-icons/gi";import { ImPlus } from "react-icons/im";import '../App.css';
 import CanvasRenderer from './battleComponents/canvasRenderer';
 import ChatBox from './chatbox';
 
+// PlayerStats Component (moved outside Lobby for reusability)
+function PlayerStats({ stats, setStats }) {
+  const allocateSkillPoint = (stat) => {
+    if (!stats || stats.skillPoints <= 0) return;
+
+    const increment = stat === 'maxHp' || stat === 'maxMana' ? 5 : 1;
+
+    const updatedStats = {
+      ...stats,
+      [stat]: stats[stat] + increment,
+      skillPoints: stats.skillPoints - 1,
+    };
+
+    setStats(updatedStats);
+
+    console.log('Player stats have been updated:', updatedStats);
+  };
+
+  const removeSkillPoint = (stat) => {
+    if (!stats || stats[stat] <= 0) return;
+
+    const decrement = stat === 'maxHp' || stat === 'maxMana' ? 5 : 1;
+
+    const updatedStats = {
+      ...stats,
+      [stat]: stats[stat] - decrement,
+      skillPoints: stats.skillPoints + 1,
+    };
+
+    setStats(updatedStats);
+
+    console.log('Player stats have been updated:', updatedStats);
+  };
+
+  if (!stats) {
+    return <div>Loading stats...</div>;
+  }
+
+  const {
+    level,
+    skillPoints,
+    attack,
+    defense,
+    maxHp,
+    maxMana,
+    agility,
+    currentExp,
+    expToLevelUp,
+    dexterity,
+    intellect,
+    luck,
+  } = stats;
+
+  return (
+    <div className="player-stats-container" style={{ marginBottom: '20px' }}>
+      <h2>Player Stats</h2>
+      <h2>Level: {level}</h2>
+      <h3>
+        EXP: {currentExp} / {expToLevelUp}
+      </h3>
+      <p>Skill Points: {skillPoints || 0}</p>
+
+      <div className="stats-row" style={{ display: 'flex', gap: '5px' }}>
+        <p>Attack: {attack}</p>
+        {skillPoints > 0 && (
+          <button
+            className="bg-transparent"
+            onClick={() => allocateSkillPoint('attack')}
+            style={{
+              backgroundColor: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <ImPlus size={12} />
+          </button>
+        )}
+      </div>
+
+      <div className="stats-row" style={{ display: 'flex', gap: '5px' }}>
+        <p>Defense: {defense}</p>
+        {skillPoints > 0 && (
+          <button
+            className="bg-transparent"
+            onClick={() => allocateSkillPoint('defense')}
+            style={{
+              backgroundColor: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <ImPlus size={12} />
+          </button>
+        )}
+      </div>
+
+      <div className="stats-row" style={{ display: 'flex', gap: '5px' }}>
+        <p>Max HP: {maxHp}</p>
+        {skillPoints > 0 && (
+          <button
+            className="bg-transparent"
+            onClick={() => allocateSkillPoint('maxHp')}
+            style={{
+              backgroundColor: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <ImPlus size={12} />
+          </button>
+        )}
+      </div>
+
+      <div className="stats-row" style={{ display: 'flex', gap: '5px' }}>
+        <p>Max Mana: {maxMana}</p>
+        {skillPoints > 0 && (
+          <button
+            className="bg-transparent"
+            onClick={() => allocateSkillPoint('maxMana')}
+            style={{
+              backgroundColor: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <ImPlus size={12} />
+          </button>
+        )}
+      </div>
+
+      <div className="stats-row" style={{ display: 'flex', gap: '5px' }}>
+        <p>Agility: {agility}</p>
+        {skillPoints > 0 && (
+          <button
+            className="bg-transparent"
+            onClick={() => allocateSkillPoint('agility')}
+            style={{
+              backgroundColor: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <ImPlus size={12} />
+          </button>
+        )}
+      </div>
+
+      <div className="stats-row" style={{ display: 'flex', gap: '5px' }}>
+        <p>Dexterity: {dexterity}</p>
+        {skillPoints > 0 && (
+          <button
+            className="bg-transparent"
+            onClick={() => allocateSkillPoint('dexterity')}
+            style={{
+              backgroundColor: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <ImPlus size={12} />
+          </button>
+        )}
+      </div>
+
+      <div className="stats-row" style={{ display: 'flex', gap: '5px' }}>
+        <p>Intellect: {intellect}</p>
+        {skillPoints > 0 && (
+          <button
+            className="bg-transparent"
+            onClick={() => allocateSkillPoint('intellect')}
+            style={{
+              backgroundColor: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <ImPlus size={12} />
+          </button>
+        )}
+      </div>
+
+      <div className="stats-row" style={{ display: 'flex', gap: '5px' }}>
+        <p>Luck: {luck}</p>
+        {skillPoints > 0 && (
+          <button
+            className="bg-transparent"
+            onClick={() => allocateSkillPoint('luck')}
+            style={{
+              backgroundColor: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <ImPlus size={12} />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Lobby Component
 function Lobby({
   stats,
   setStats, // Receive setStats as a prop
@@ -20,9 +221,9 @@ function Lobby({
   addItemToInventory,
   lastLoot,
   setLastLoot,
-  equipped,          // Receive equipped state
-  equipItem,         // Receive equipItem function
-  unequipItem,       // Receive unequipItem function
+  equipped, // Receive equipped state
+  equipItem, // Receive equipItem function
+  unequipItem, // Receive unequipItem function
 }) {
   const canvasWidth = window.innerWidth * 0.7;
   const canvasHeight = window.innerHeight;
@@ -31,7 +232,7 @@ function Lobby({
   const [showLootModal, setShowLootModal] = useState(false);
   const [lootedItems, setLootedItems] = useState([]);
   const [currentMessage, setCurrentMessage] = useState('');
-  
+
   // Tooltip State
   const [tooltip, setTooltip] = useState({
     visible: false,
@@ -39,10 +240,13 @@ function Lobby({
     position: { x: 0, y: 0 },
   });
 
+  // PlayerStats Modal State
+  const [showPlayerStatsModal, setShowPlayerStatsModal] = useState(false);
+
   // Audio Hooks
   const playHoverSound = useAudio('/sounds/hover.mp3'); // ensure useAudio is correctly implemented
   const playClickSound = useAudio('/sounds/clicker.mp3');
-  
+
   // Effect to watch for changes in lastLoot
   useEffect(() => {
     if (lastLoot.length > 0) {
@@ -122,7 +326,7 @@ function Lobby({
       text: 'Explore Area',
       isHovered: hoveredButtonRef.current === 'exploreArea',
     });
-    
+
     // Draw buttons
     drawCanvasButton(ctx, {
       x: canvasWidth / 2 - 100,
@@ -144,7 +348,7 @@ function Lobby({
   ) => {
     ctx.fillStyle = isHovered ? '#FF8261' : '#FF6347'; // Hover effect
     ctx.fillRect(x, y, width, height);
-  
+
     ctx.fillStyle = 'white';
     ctx.font = '16px "Press Start 2P"';
     ctx.textAlign = 'center';
@@ -158,7 +362,7 @@ function Lobby({
     const rect = canvas.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
-  
+
     if (
       mouseX >= canvasWidth / 2 - 100 &&
       mouseX <= canvasWidth / 2 + 100 &&
@@ -179,14 +383,13 @@ function Lobby({
         hoveredButtonRef.current = 'exploreArea';
         playHoverSound();
       }
-    
     } else {
       if (hoveredButtonRef.current !== null) {
         hoveredButtonRef.current = null;
       }
     }
   };
-  
+
   const handleMouseClick = (e) => {
     const canvas = e.target;
     const rect = canvas.getBoundingClientRect();
@@ -209,11 +412,9 @@ function Lobby({
       mouseY >= canvasHeight / 2 &&
       mouseY <= canvasHeight / 2 + 40
     ) {
-
       // Implement Collect Resources logic
       alert('Resources Collected!');
-    }
-    else if (
+    } else if (
       mouseX >= canvasWidth / 2 - 100 &&
       mouseX <= canvasWidth / 2 + 100 &&
       mouseY >= canvasHeight / 2 + 60 &&
@@ -231,6 +432,7 @@ function Lobby({
         width: '100%',
         height: '100vh',
         overflow: 'hidden',
+        position: 'relative', // To position the modal correctly
       }}
     >
       {tooltip.visible && (
@@ -260,6 +462,7 @@ function Lobby({
 
       {/* UI Section */}
       <div
+
         style={{
           flex: '3 3 30%',
           backgroundColor: '#1e1e1e',
@@ -274,9 +477,71 @@ function Lobby({
         }}
       >
         <h1 className="inventory-title">Welcome to the Lobby!</h1>
-        {/* Display Player Stats */}
-        <PlayerStats stats={stats} setStats={setStats} /> {/* Pass setStats as prop */}
 
+        {/* Player Stats Icon */}
+        <div
+  onMouseEnter={(e) => {
+    const rect = e.target.getBoundingClientRect();
+    setTooltip({
+      visible: true,
+      content: 'Click to view and raise your stats',
+      position: { x: rect.left + rect.width / 2, y: rect.top - 10 },
+    });
+    playHoverSound();
+  }}
+  onMouseLeave={() => {
+    setTooltip({ visible: false, content: '', position: { x: 0, y: 0 } });
+  }}
+  onClick={() => setShowPlayerStatsModal(true)}
+  style={{
+    display: 'flex',
+    alignItems: 'center',
+    marginBottom: '10px',
+    cursor: 'pointer',
+    color: stats.skillPoints > 0 ? 'orange' : 'white',
+    animation: stats.skillPoints > 0 ? 'flash 1.5s infinite' : 'none',
+  }}
+>
+  <GiMountedKnight size={24} />
+  <span style={{ marginLeft: '8px', fontSize: '16px' }}>Player Stats</span>
+</div>
+
+{/* Retro Tooltip */}
+{tooltip.visible && (
+  <div
+    className="retro-tooltip"
+    style={{
+      position: 'absolute',
+      top: tooltip.position.y, // Tooltip position based on dynamic state
+      left: tooltip.position.x,
+      transform: 'translateX(-50%)',
+      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+      padding: '5px 10px',
+      borderRadius: '5px',
+      color: 'white',
+      zIndex: 1000,
+      fontSize: '12px',
+      pointerEvents: 'none',
+    }}
+  >
+    {tooltip.content}
+  </div>
+)}
+
+<style>
+{`
+  @keyframes flash {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.5;
+      transform: scale(1.1);
+    }
+  }
+`}
+</style>
         {/* Display Equipped Items */}
         <EquippedItems
           equipped={equipped}
@@ -294,8 +559,11 @@ function Lobby({
           unequipItem={unequipItem}
         />
 
+        {/* Removed PlayerStats from here */}
+
         {/* Enter Battle Button */}
         <button
+        onMouseOver={playHoverSound}
           onClick={onEnterBattle}
           className="enter-battle-button"
           style={{
@@ -352,6 +620,54 @@ function Lobby({
             {tooltip.content}
           </div>
         )}
+
+        {/* Player Stats Modal */}
+        {showPlayerStatsModal && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100vh',
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              zIndex: 300, // Ensure it's above other elements
+            }}
+          >
+            <div
+              style={{
+                backgroundColor: '#2e2e2e',
+                padding: '20px',
+                borderRadius: '10px',
+                width: '80%',
+                maxWidth: '500px',
+                maxHeight: '80vh',
+                overflowY: 'auto',
+                position: 'relative',
+              }}
+            >
+              <button
+                onClick={() => setShowPlayerStatsModal(false)}
+                style={{
+                  position: 'absolute',
+                  top: '10px',
+                  right: '10px',
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'white',
+                  fontSize: '20px',
+                  cursor: 'pointer',
+                }}
+              >
+                &times;
+              </button>
+              <PlayerStats stats={stats} setStats={setStats} />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -369,94 +685,18 @@ const manageButtonStyle = {
   fontSize: '14px',
 };
 
-// PlayerStats Component
-function PlayerStats({ stats, setStats }) { // Accept setStats as prop
-  const allocateSkillPoint = (stat) => {
-    // Ensure stats exist and there are available skill points
-    if (!stats || stats.skillPoints <= 0) return;
-
-    // Determine the increment value based on the stat
-    const increment = stat === 'maxHp' ? 5 : 1;
-
-    // Update the centralized stats state
-    const updatedStats = {
-      ...stats,
-      [stat]: stats[stat] + increment, // Increase the selected stat
-      skillPoints: stats.skillPoints - 1, // Decrease skill points
-    };
-
-    // Update the state with the new stats
-    setStats(updatedStats);
-
-    console.log('Player stats have been updated:', updatedStats);
-  };
-
-
-  if (!stats) {
-    return <div>Loading stats...</div>; // Fallback if stats are not yet loaded
-  }
-
-  const { level, skillPoints, attack, defense, maxHp, agility, currentExp, expToLevelUp, dexterity, intellect, luck } = stats;
-
-  return (
-    <div className="player-stats-container" style={{ marginBottom: '20px' }}>
-      <h2>Player Stats</h2>
-      <h2>Level: {level}</h2>
-      <h3>EXP: {currentExp} / {expToLevelUp}</h3>
-      <p>Skill Points: {skillPoints || 0}</p>
-      <div className="stats-row" style={{ display: 'flex', gap: '10px' }}>
-        <p>Attack: {attack}</p>
-        {skillPoints > 0 && (
-          <button onClick={() => allocateSkillPoint('attack')}>+</button>
-        )}
-      </div>
-      <div className="stats-row" style={{ display: 'flex', gap: '10px' }}>
-        <p>Defense: {defense}</p>
-        {skillPoints > 0 && (
-          <button onClick={() => allocateSkillPoint('defense')}>+</button>
-        )}
-      </div>
-      <div className="stats-row" style={{ display: 'flex', gap: '10px' }}>
-        <p>Max HP: {maxHp}</p>
-        {skillPoints > 0 && (
-          <button onClick={() => allocateSkillPoint('maxHp')}>+</button>
-        )}
-      </div>
-      <div className="stats-row" style={{ display: 'flex', gap: '10px' }}>
-        <p>Agility: {agility}</p>
-        {skillPoints > 0 && (
-          <button onClick={() => allocateSkillPoint('agility')}>+</button>
-        )}
-      </div>
-      <div className="stats-row" style={{ display: 'flex', gap: '10px' }}>
-        <p>Dexterity: {dexterity}</p>
-        {skillPoints > 0 && (
-          <button onClick={() => allocateSkillPoint('dexterity')}>+</button>
-        )}
-      </div>
-      <div className="stats-row" style={{ display: 'flex', gap: '10px' }}>
-        <p>Intellect: {intellect}</p>
-        {skillPoints > 0 && (
-          <button onClick={() => allocateSkillPoint('intellect')}>+</button>
-        )}
-      </div>
-      <div className="stats-row" style={{ display: 'flex', gap: '10px' }}>
-        <p>Luck: {luck}</p>
-        {skillPoints > 0 && (
-          <button onClick={() => allocateSkillPoint('luck')}>+</button>
-        )}
-      </div>
-    </div>
-  );
-}
-
 // EquippedItems Component
 function EquippedItems({ equipped, itemsList, unequipItem }) {
-  const equippedItems = equipped.map(id => itemsList.find(item => item.id === id)).filter(Boolean);
+  const equippedItems = equipped
+    .map((id) => itemsList.find((item) => item.id === id))
+    .filter(Boolean);
 
   if (equippedItems.length === 0) {
     return (
-      <div className="equipped-items-container" style={{ marginBottom: '20px' }}>
+      <div
+        className="equipped-items-container"
+        style={{ marginBottom: '20px' }}
+      >
         <h2>Equipped Items</h2>
         <p>No items equipped.</p>
       </div>
@@ -464,16 +704,34 @@ function EquippedItems({ equipped, itemsList, unequipItem }) {
   }
 
   return (
-    <div className="equipped-items-container" style={{ marginBottom: '20px' }}>
+    <div
+      className="equipped-items-container"
+      style={{ marginBottom: '20px' }}
+    >
       <h2>Equipped Items</h2>
-      <div className="equipped-items" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-        {equippedItems.map(item => (
-          <div key={item.id} className="equipped-item" style={{ textAlign: 'center' }}>
+      <div
+        className="equipped-items"
+        style={{
+          display: 'flex',
+          gap: '10px',
+          flexWrap: 'wrap',
+        }}
+      >
+        {equippedItems.map((item) => (
+          <div
+            key={item.id}
+            className="equipped-item"
+            style={{ textAlign: 'center' }}
+          >
             <img
               src={item.png}
               alt={item.name}
               className="equipped-item-image"
-              style={{ width: '50px', height: '50px', cursor: 'pointer' }}
+              style={{
+                width: '50px',
+                height: '50px',
+                cursor: 'pointer',
+              }}
               onClick={() => unequipItem(item.id)}
             />
             <p style={{ fontSize: '12px' }}>{item.name}</p>
@@ -485,9 +743,18 @@ function EquippedItems({ equipped, itemsList, unequipItem }) {
 }
 
 // InventoryGrid Component
-function InventoryGrid({ inventory, itemsList, setTooltip, equipped, equipItem, unequipItem }) {
+function InventoryGrid({
+  inventory,
+  itemsList,
+  setTooltip,
+  equipped,
+  equipItem,
+  unequipItem,
+}) {
   // Map inventory IDs to item objects, including empty slots if needed
-  const items = inventory.map((itemId, index) => itemsList.find((itm) => itm.id === itemId) || null);
+  const items = inventory.map(
+    (itemId, index) => itemsList.find((itm) => itm.id === itemId) || null
+  );
 
   const handleUseItem = (itemId) => {
     const item = itemsList.find((itm) => itm.id === itemId);
@@ -500,7 +767,7 @@ function InventoryGrid({ inventory, itemsList, setTooltip, equipped, equipItem, 
       // }
     }
   };
-  
+
   const handleMouseEnter = (item, e) => {
     const rect = e.target.getBoundingClientRect();
     playHoverSound();
@@ -510,22 +777,31 @@ function InventoryGrid({ inventory, itemsList, setTooltip, equipped, equipItem, 
       position: { x: rect.left + rect.width / 2, y: rect.top },
     });
   };
-  
+
   const handleMouseLeave = () => {
     setTooltip({ visible: false, content: '', position: { x: 0, y: 0 } });
   };
-  
+
   const playHoverSound = useAudio('/sounds/hover.mp3'); // Optional: Tooltip sound
 
   return (
     <div className="inventory-grid-container">
       <h2 className="inventory-title">Your Inventory</h2>
-      <div className="inventory-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-        {items.map((item, index) => (
+      <div
+        className="inventory-grid"
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '10px',
+        }}
+      >
+        {items.map((item, index) =>
           item ? (
             <div
               key={index}
-              className={`inventory-item ${equipped.includes(item.id) ? 'equipped' : ''}`}
+              className={`inventory-item ${
+                equipped.includes(item.id) ? 'equipped' : ''
+              }`}
               onMouseEnter={(e) => handleMouseEnter(item, e)}
               onMouseLeave={handleMouseLeave}
               style={{
@@ -540,8 +816,25 @@ function InventoryGrid({ inventory, itemsList, setTooltip, equipped, equipItem, 
                 backgroundColor: '#222',
               }}
             >
-              <img src={item.png} alt={item.name} className="inventory-item-image" style={{ width: '100%', height: '100%' }} />
-              <span className="inventory-item-name" style={{ position: 'absolute', bottom: '2px', left: '50%', transform: 'translateX(-50%)', fontSize: '10px', color: 'white' }}>{item.name}</span>
+              <img
+                src={item.png}
+                alt={item.name}
+                className="inventory-item-image"
+                style={{ width: '100%', height: '100%' }}
+              />
+              <span
+                className="inventory-item-name"
+                style={{
+                  position: 'absolute',
+                  bottom: '2px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  fontSize: '10px',
+                  color: 'white',
+                }}
+              >
+                {item.name}
+              </span>
               {item.equippable && (
                 <button
                   onClick={(e) => {
@@ -552,7 +845,9 @@ function InventoryGrid({ inventory, itemsList, setTooltip, equipped, equipItem, 
                       equipItem(item.id);
                     }
                   }}
-                  className={`equip-button ${equipped.includes(item.id) ? 'unequip' : 'equip'}`}
+                  className={`equip-button ${
+                    equipped.includes(item.id) ? 'unequip' : 'equip'
+                  }`}
                   style={{
                     position: 'absolute',
                     top: '2px',
@@ -560,7 +855,9 @@ function InventoryGrid({ inventory, itemsList, setTooltip, equipped, equipItem, 
                     padding: '2px 5px',
                     fontSize: '10px',
                     cursor: 'pointer',
-                    backgroundColor: equipped.includes(item.id) ? '#ff6347' : '#32cd32',
+                    backgroundColor: equipped.includes(item.id)
+                      ? '#ff6347'
+                      : '#32cd32',
                     color: 'white',
                     border: 'none',
                     borderRadius: '3px',
@@ -571,9 +868,19 @@ function InventoryGrid({ inventory, itemsList, setTooltip, equipped, equipItem, 
               )}
             </div>
           ) : (
-            <div key={index} className="inventory-empty-slot" style={{ width: '64px', height: '64px', border: '1px dashed #555', borderRadius: '5px', backgroundColor: '#111' }}></div>
+            <div
+              key={index}
+              className="inventory-empty-slot"
+              style={{
+                width: '64px',
+                height: '64px',
+                border: '1px dashed #555',
+                borderRadius: '5px',
+                backgroundColor: '#111',
+              }}
+            ></div>
           )
-        ))}
+        )}
       </div>
     </div>
   );
@@ -599,7 +906,13 @@ function LootModal({ lootedItems, handleCloseLootModal }) {
       }}
     >
       <h1 style={{ fontSize: '48px', marginBottom: '20px' }}>Loot Obtained!</h1>
-      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }}>
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+        }}
+      >
         {lootedItems.map((item, index) => (
           <div
             key={index}
