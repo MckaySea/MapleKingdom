@@ -449,8 +449,8 @@ function App() {
                 style={{
                   position: 'absolute',
                   bottom: '10px',
-                  left: '85%',
-                  transform: 'translateX(-50%)',
+                  left: '25%',
+                  transform: 'translateX(-20%)',
                   width: '400px',
                   maxHeight: '300px',
                   backgroundColor: 'rgba(0, 0, 0, 0.7)',
