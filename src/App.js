@@ -1,3 +1,4 @@
+// src/App.js
 /* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -8,11 +9,18 @@ import BattleScene from './components/battleComponents/battleScene';
 import Lobby from './components/lobby';
 import itemsList from './components/itemslist';
 import ExploreCanvas from './components/exploreCanvas';
+import ChatBox from './components/chatbox';
+import { WebSocketProvider } from './components/WebSocketContext';
 
 function App() {
-  // Initialize currentScene based on the presence of playerId cookie
+  // Initialize nickname from cookies or null
+  const [nickname, setNickname] = useState(() => Cookies.get('nickname') || '');
+
+  // Initialize currentScene based on the presence of playerId and nickname
   const [currentScene, setCurrentScene] = useState(() => {
     const savedPlayerId = Cookies.get('playerId');
+    const savedNickname = Cookies.get('nickname');
+    if (!savedNickname) return 'nickname';
     return savedPlayerId ? 'lobby' : 'characterCreation';
   });
 
@@ -175,8 +183,6 @@ function App() {
   );
 
   // Function to equip an item
- // f
-
   const equipItem = useCallback(
     (itemId) => {
       const item = itemsList.find((itm) => itm.id === itemId);
@@ -211,9 +217,8 @@ function App() {
         console.warn(`Item with ID ${itemId} is not equippable or does not exist.`);
       }
     },
-    [itemsList, setEquipped, setStats] // Add dependencies here
+    [itemsList, setEquipped, setStats]
   );
-  
 
   // Function to unequip an item
   const unequipItem = useCallback((itemId) => {
@@ -315,69 +320,153 @@ function App() {
     setCurrentScene('lobby');
   }, []);
 
+  // Function to handle nickname submission
+  const handleNicknameSubmit = (e) => {
+    e.preventDefault();
+    const trimmedNickname = nickname.trim();
+    if (trimmedNickname === '') {
+      alert('Please enter a valid nickname.');
+      return;
+    }
+
+    // Save nickname in cookies (expires in 7 days)
+    Cookies.set('nickname', trimmedNickname, { expires: 7 });
+    setNickname(trimmedNickname);
+
+    // Determine the next scene based on whether playerId exists
+    const savedPlayerId = Cookies.get('playerId');
+    if (savedPlayerId) {
+      setCurrentScene('lobby');
+    } else {
+      setCurrentScene('characterCreation');
+    }
+  };
+
   return (
-    <div
-      style={{
-        cursor: `url(${cursorPng}), auto`,
-      }}
+    <WebSocketProvider
+      playerId={playerId}
+      nickname={nickname}
+      selectedPng={selectedPng}
+      stats={stats}
     >
-      <audio
-        ref={audioRef}
-        onEnded={handleTrackEnd}
-        style={{ display: 'none' }}
-      /> 
-      {currentScene === 'characterCreation' ? (
-        <CharacterCreation onCharacterCreate={handleCharacterCreation} />
-      ) : currentScene === 'lobby' ? (
-        stats ? ( // Only render Lobby if stats is defined
-          <Lobby
-            stats={stats}
-            setStats={setStats} // Pass setStats here
-            selectedPng={selectedPng}
-            inventory={inventory}
-            itemsList={itemsList}
-            onEnterBattle={handleStartBattle}
-            onEnterExplore={handleEnterExplore}
-            lastLoot={lastLoot}
-            setLastLoot={setLastLoot}
-            equipped={equipped}
-            playerId={playerId}
-            equipItem={equipItem}
-            unequipItem={unequipItem}
-            addItemToInventory={addItemToInventory}
-          />
+      <div
+        style={{
+          cursor: `url(${cursorPng}), auto`,
+          position: 'relative',
+          width: '100vw',
+          height: '100vh',
+          overflow: 'hidden',
+        }}
+      >
+        <audio
+          ref={audioRef}
+          onEnded={handleTrackEnd}
+          style={{ display: 'none' }}
+        /> 
+        {currentScene === 'nickname' ? (
+          // Render nickname input form
+          <div style={{ 
+            position: 'absolute', 
+            top: '50%', 
+            left: '50%', 
+            transform: 'translate(-50%, -50%)',
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            padding: '20px',
+            borderRadius: '10px',
+            boxShadow: '0 0 10px rgba(0,0,0,0.5)'
+          }}>
+            <h2>Enter Your Nickname</h2>
+            <form onSubmit={handleNicknameSubmit}>
+              <input
+                type="text"
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value)}
+                placeholder="Nickname"
+                required
+                style={{ padding: '10px', fontSize: '16px', width: '100%', marginBottom: '10px' }}
+              />
+              <button type="submit" style={{ padding: '10px 20px', fontSize: '16px' }}>
+                Submit
+              </button>
+            </form>
+          </div>
         ) : (
-          <div>Loading stats...</div> // Show a loading message until stats is ready
-        )
-      ) : currentScene === 'explore' ? (
-        <ExploreCanvas
-          atk={stats?.attack || 1}
-          def={stats?.defense || 1}
-          int={stats?.intellect || 1}
-          dex={stats?.dexterity || 1}
-          agility={stats?.agility || 1}
-          luck={stats?.luck || 1}
-          maxHp={stats?.maxHp || 1}
-          selectedPng={selectedPng}
-          playerId={playerId}
-          playerLevel={stats?.level || 1}
-          onBackToLobby={() => setCurrentScene('lobby')}
-        />
-      ) : currentScene === 'battle' ? (
-        <BattleScene
-          selectedPng={selectedPng}
-          selectedAtkPng={selectedAtkPng}
-          stats={stats}
-          setStats={setStats} // Pass setStats here
-          onBackToLobby={handleBackToLobby}
-          addItemToInventory={addItemToInventory}
-          setLastLoot={setLastLoot}
-          inventory={inventory} // Pass inventory
-          removeItemFromInventory={removeItemFromInventory} // Pass remove function
-          hasItemInInventory={hasItemInInventory} // Pass the check function
-        />
-      ) : null}
-    </div>
+          <>
+            {currentScene === 'characterCreation' ? (
+              <CharacterCreation onCharacterCreate={handleCharacterCreation} />
+            ) : currentScene === 'lobby' ? (
+              stats ? ( // Only render Lobby if stats is defined
+                <Lobby
+                  stats={stats}
+                  setStats={setStats} // Pass setStats here
+                  selectedPng={selectedPng}
+                  inventory={inventory}
+                  itemsList={itemsList}
+                  onEnterBattle={handleStartBattle}
+                  onEnterExplore={handleEnterExplore}
+                  lastLoot={lastLoot}
+                  setLastLoot={setLastLoot}
+                  equipped={equipped}
+                  playerId={playerId}
+                  equipItem={equipItem}
+                  unequipItem={unequipItem}
+                  addItemToInventory={addItemToInventory}
+                />
+              ) : (
+                <div>Loading stats...</div> // Show a loading message until stats is ready
+              )
+            ) : currentScene === 'explore' ? (
+              <ExploreCanvas
+                atk={stats?.attack || 1}
+                def={stats?.defense || 1}
+                int={stats?.intellect || 1}
+                dex={stats?.dexterity || 1}
+                agility={stats?.agility || 1}
+                luck={stats?.luck || 1}
+                maxHp={stats?.maxHp || 1}
+                selectedPng={selectedPng}
+                playerId={playerId}
+                playerLevel={stats?.level || 1}
+                onBackToLobby={() => setCurrentScene('lobby')}
+              />
+            ) : currentScene === 'battle' ? (
+              <BattleScene
+                selectedPng={selectedPng}
+                selectedAtkPng={selectedAtkPng}
+                stats={stats}
+                setStats={setStats} // Pass setStats here
+                onBackToLobby={handleBackToLobby}
+                addItemToInventory={addItemToInventory}
+                setLastLoot={setLastLoot}
+                inventory={inventory} // Pass inventory
+                removeItemFromInventory={removeItemFromInventory} // Pass remove function
+                hasItemInInventory={hasItemInInventory} // Pass the check function
+              />
+            ) : null}
+            {/* Render the ChatBox globally */}
+            {currentScene !== 'battle' && currentScene !== 'explore' && currentScene !== 'characterCreation' && (
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: '10px',
+                  left: '85%',
+                  transform: 'translateX(-50%)',
+                  width: '400px',
+                  maxHeight: '300px',
+                  backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                  borderRadius: '10px',
+                  padding: '10px',
+                  boxSizing: 'border-box',
+                  overflow: 'hidden',
+                }}
+              >
+                <ChatBox />
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </WebSocketProvider>
   );
 }
 

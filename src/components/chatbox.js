@@ -1,6 +1,9 @@
-import React, { useRef, useEffect } from 'react';
-
-function ChatBox({ chatMessages, currentMessage, setCurrentMessage, onSendMessage }) {
+// src/chatbox.js
+import React, { useContext, useRef, useEffect, useState } from 'react';
+import { WebSocketContext } from './WebSocketContext';
+function ChatBox() {
+  const { chatMessages, sendMessage } = useContext(WebSocketContext);
+  const [currentMessage, setCurrentMessage] = useState('');
   const chatEndRef = useRef(null);
 
   // Auto-scroll chat to the latest message
@@ -10,9 +13,17 @@ function ChatBox({ chatMessages, currentMessage, setCurrentMessage, onSendMessag
     }
   }, [chatMessages]);
 
+  const handleSendMessage = () => {
+    if (currentMessage.trim()) {
+      sendMessage(currentMessage.trim());
+      setCurrentMessage('');
+    }
+  };
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
-      onSendMessage();
+      e.preventDefault(); // Prevent newline in the input
+      handleSendMessage();
     }
   };
 
@@ -20,22 +31,32 @@ function ChatBox({ chatMessages, currentMessage, setCurrentMessage, onSendMessag
     <div
       style={{
         width: '100%',
-        height: '100%',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        height: '250px',
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
         color: 'white',
         padding: '10px',
-        borderRadius: '5px',
-        overflowY: 'auto',
+        borderRadius: '10px',
+        overflowY: 'hidden',
         fontSize: '14px',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
       }}
     >
-      <div>
+      {/* Chat Header */}
+      <div style={{ marginBottom: '10px', textAlign: 'center' }}>
         <strong>Chat</strong>
       </div>
-      <div style={{ flex: 1, overflowY: 'auto', marginBottom: '10px' }}>
+
+      {/* Chat Messages */}
+      <div
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          marginBottom: '10px',
+          paddingRight: '5px',
+        }}
+      >
         {chatMessages.map((msg, index) => (
           <div
             key={index}
@@ -50,23 +71,43 @@ function ChatBox({ chatMessages, currentMessage, setCurrentMessage, onSendMessag
         ))}
         <div ref={chatEndRef} />
       </div>
+
       {/* Chat Input */}
-      <input
-        type="text"
-        value={currentMessage}
-        onChange={(e) => setCurrentMessage(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="Type a message..."
-        style={{
-          width: '100%',
-          height: '30px',
-          padding: '5px 10px',
-          fontSize: '14px',
-          borderRadius: '5px',
-          border: 'none',
-          outline: 'none',
-        }}
-      />
+      <div style={{ display: 'flex' }}>
+        <input
+          type="text"
+          value={currentMessage}
+          onChange={(e) => setCurrentMessage(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Type a message..."
+          style={{
+            flex: 1,
+            height: '35px',
+            padding: '5px 10px',
+            fontSize: '14px',
+            borderRadius: '5px 0 0 5px',
+            border: 'none',
+            outline: 'none',
+            backgroundColor: '#333',
+            color: 'white',
+          }}
+        />
+        <button
+          onClick={handleSendMessage}
+          style={{
+            padding: '0 15px',
+            height: '35px',
+            border: 'none',
+            borderRadius: '0 5px 5px 0',
+            backgroundColor: '#4CAF50',
+            color: 'white',
+            cursor: 'pointer',
+            fontSize: '14px',
+          }}
+        >
+          Send
+        </button>
+      </div>
     </div>
   );
 }
