@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 // src/components/ExploreCanvas.js
 import React, { useState, useEffect, useRef, useCallback, useContext } from 'react';
 import CanvasRenderer from './battleComponents/canvasRenderer';
