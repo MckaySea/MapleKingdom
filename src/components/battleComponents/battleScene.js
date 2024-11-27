@@ -40,7 +40,8 @@ function BattleScene({
     attack: playerAttack,
     defense: playerDefense,
     maxHp: playerMaxHp,
-    currentMana, // Current Mana
+    currentMana,
+    currentHP, // Current Mana
     maxMana,     // Maximum Mana
     agility: playerAgility,
     dexterity: playerDex,
@@ -54,9 +55,9 @@ function BattleScene({
 
   // Update HP and Mana when stats change (e.g., leveling up)
   useEffect(() => {
-    setPlayerHP(stats.currentHP || playerMaxHp);
-    setPlayerMana(stats.currentMana || maxMana);
-  }, [stats.currentHP, playerMaxHp, stats.currentMana, maxMana]);
+    setPlayerHP(currentHP || playerMaxHp);
+    setPlayerMana(currentMana || maxMana);
+  }, [currentHP, playerMaxHp, currentMana, maxMana]);
 
   // Define minimum and maximum sizes for the player's image
   const playerMinSize = 70; // Smaller size at level 1
@@ -308,7 +309,7 @@ function BattleScene({
   const playDamageSound = useAudio('/sounds/damage.mp3');
   const playCriticalSound = useAudio('/sounds/crit.mp3');
   const playVictorySound = useAudio('/sounds/quest.mp3');
-  const playDefeatSound = useAudio('/sounds/defeat.mp3'); // Added defeat sound
+  const playDefeatSound = useAudio('/sounds/death.mp3'); // Added defeat sound
   const playMissSound = useAudio('/sounds/miss.mp3');
   // New audio hooks for magic skills
   const playFireballSound = useAudio('/sounds/magic.mp3');
@@ -377,7 +378,7 @@ function BattleScene({
     // Load Ice Shield Image (if used)
     iceShieldImage.current.src = '/projectiles/iceshield.png';
     iceShieldImage.current.onerror = () => {
-      iceShieldImage.current.src = '/projectiles/defaultProjectile.png'; // Fallback image
+      iceShieldImage.current.src = '/items/mapleshield.png'; // Fallback image
     };
   }, []);
 
@@ -1142,6 +1143,10 @@ function BattleScene({
 
             // Calculate new HP, ensuring it doesn't go below 0
             const newHP = Math.max(prevHP - damage, 0);
+            setStats((prevStats) => ({
+              ...prevStats,
+              currentHP: newHP,
+            }));
             return newHP;
           }
         });
