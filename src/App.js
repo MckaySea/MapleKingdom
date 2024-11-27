@@ -175,7 +175,7 @@ function App() {
   );
 
   // Function to equip an item
-
+ // f
 
   const equipItem = useCallback(
     (itemId) => {
