@@ -175,32 +175,45 @@ function App() {
   );
 
   // Function to equip an item
-  const equipItem = useCallback((itemId) => {
-    const item = itemsList.find((itm) => itm.id === itemId);
 
-    if (item && item.equippable) {
-      setEquipped((prevEquipped) => {
-        if (prevEquipped.includes(itemId)) return prevEquipped;
 
-        const updatedEquipped = [...prevEquipped, itemId];
-
-        // Update stats based on item properties
-        setStats((prevStats) => {
-          const newStats = { ...prevStats };
-
-          if (item.attack) newStats.attack += item.attack;
-          if (item.defense) newStats.defense += item.defense;
-          if (item.agility) newStats.agility += item.agility;
-          if (item.intellect) newStats.intellect += item.intellect;
-          if (item.dexterity) newStats.dexterity += item.dexterity;
-
-          return newStats;
+  const equipItem = useCallback(
+    (itemId) => {
+      const item = itemsList.find((itm) => itm.id === itemId);
+  
+      if (item && item.equippable) {
+        setEquipped((prevEquipped) => {
+          // Check if the item is already equipped
+          if (prevEquipped.includes(itemId)) {
+            console.warn(`Item with ID ${itemId} is already equipped.`);
+            return prevEquipped;
+          }
+  
+          // Add the new item to the equipped list
+          const updatedEquipped = [...prevEquipped, itemId];
+  
+          // Update stats based on item properties
+          setStats((prevStats) => {
+            const newStats = { ...prevStats };
+  
+            if (item.attack) newStats.attack += item.attack;
+            if (item.defense) newStats.defense += item.defense;
+            if (item.agility) newStats.agility += item.agility;
+            if (item.intellect) newStats.intellect += item.intellect;
+            if (item.dexterity) newStats.dexterity += item.dexterity;
+  
+            return newStats;
+          });
+  
+          return updatedEquipped;
         });
-
-        return updatedEquipped;
-      });
-    }
-  }, []);
+      } else {
+        console.warn(`Item with ID ${itemId} is not equippable or does not exist.`);
+      }
+    },
+    [itemsList, setEquipped, setStats] // Add dependencies here
+  );
+  
 
   // Function to unequip an item
   const unequipItem = useCallback((itemId) => {
