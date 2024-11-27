@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
-// src/components/battleComponents/battleScene.js
+// src/components/battleComponents/BattleScene.js
 
 import React, {
   useEffect,
@@ -41,8 +41,8 @@ function BattleScene({
     defense: playerDefense,
     maxHp: playerMaxHp,
     currentMana,
-    currentHP, // Current Mana
-    maxMana,     // Maximum Mana
+    currentHP, // Current HP
+    maxMana,    // Maximum Mana
     agility: playerAgility,
     dexterity: playerDex,
     intellect: playerInt,
@@ -293,13 +293,18 @@ function BattleScene({
     return Math.min(size, enemyMaxSize); // Ensure size doesn't exceed maxSize
   }, [enemyStats.level]);
 
-  // Defense boost state
-  const [defenseBoost, setDefenseBoost] = useState(false);
+  // Magic Modifiers State
+  const [magicModifiers, setMagicModifiers] = useState({
+    attackBonus: 0,
+    defenseBonus: 0,
+    damageMultiplier: 1,
+    // Add more modifiers as needed
+  });
 
-  // Modify playerDefense if defenseBoost is active
+  // Modify playerDefense if magicModifiers.defenseBonus is active
   const effectivePlayerDefense = useMemo(() => {
-    return defenseBoost ? playerDefense + 10 : playerDefense;
-  }, [defenseBoost, playerDefense]);
+    return playerDefense + magicModifiers.defenseBonus;
+  }, [playerDefense, magicModifiers.defenseBonus]);
 
   // Audio hooks
   const playHoverSound = useAudio('/sounds/hover.mp3');
@@ -315,6 +320,7 @@ function BattleScene({
   const playFireballSound = useAudio('/sounds/magic.mp3');
   const playLightningSound = useAudio('/sounds/magic.mp3');
   const playIceShieldSound = useAudio('/sounds/iceshield.mp3');
+  const playRageSound = useAudio('/sounds/rage.mp3'); // Assuming you have a sound for Rage
 
   // Load background image
   const background = useRef(new Image());
@@ -361,6 +367,7 @@ function BattleScene({
   const fireballImage = useRef(new Image());
   const lightningImage = useRef(new Image());
   const iceShieldImage = useRef(new Image()); // Optional for Ice Shield
+  const rageImage = useRef(new Image()); // Image for Rage effect
 
   useEffect(() => {
     // Load Fireball Image
@@ -376,9 +383,15 @@ function BattleScene({
     };
 
     // Load Ice Shield Image (if used)
-    iceShieldImage.current.src = '/projectiles/iceshield.png';
+    iceShieldImage.current.src = '/projectiles/icewall.png';
     iceShieldImage.current.onerror = () => {
       iceShieldImage.current.src = '/items/mapleshield.png'; // Fallback image
+    };
+
+    // Load Rage Image (if used)
+    rageImage.current.src = '/projectiles/rage.png';
+    rageImage.current.onerror = () => {
+      rageImage.current.src = '/projectiles/rage.png'; // Fallback image
     };
   }, []);
 
@@ -420,7 +433,10 @@ function BattleScene({
             return { ...prevStats, currentMana: newMana };
           });
 
-          const damage = Math.round(Math.max(0, playerInt * 1.4 - enemyStats.defense));
+          const damage = Math.round(
+            Math.max(0, playerInt * 1.4 - enemyStats.defense) *
+              magicModifiers.damageMultiplier
+          );
           playFireballSound();
 
           // Calculate dynamic speed and size
@@ -444,7 +460,8 @@ function BattleScene({
       {
         name: 'Lightning Strike',
         icon: '/projectiles/lightning.png',
-        description: 'Deals lightning damage with a chance to stun. Costs 15 mana.',
+        description:
+          'Deals lightning damage with a chance to stun. Costs 15 mana.',
         manaCost: 15, // Mana cost for Lightning Strike
         projectileImageSrc: '/projectiles/lightning.png', // Unique image for Lightning Strike
         effect: () => {
@@ -460,7 +477,12 @@ function BattleScene({
             return { ...prevStats, currentMana: newMana };
           });
 
-          const damage = Math.round(Math.max(0, (playerInt * 1.3) + (playerDex / 2) - enemyStats.defense));
+          const damage = Math.round(
+            Math.max(
+              0,
+              playerInt * 1.3 + playerDex / 2 - enemyStats.defense
+            ) * magicModifiers.damageMultiplier
+          );
           const stunChance = 0.2; // 20% chance to stun
           playLightningSound();
 
@@ -484,15 +506,21 @@ function BattleScene({
         },
       },
       {
-        name: 'Ice Shield',
-        icon: '/3.png',
-        description: 'Increases your defense for the next turn. Costs 20 mana.',
-        manaCost: 20, // Mana cost for Ice Shield
-        projectileImageSrc: '/projectiles/iceshield.png', // Optional
+        name: 'Ice Wall',
+        icon: '/projectiles/icewall.png',
+        description:
+          'Increases your defense until the fight ends. Costs 20 mana.',
+        manaCost: 20, // Mana cost for Ice Wall
+        projectileImageSrc: '/projectiles/icewall.png', // Optional
         effect: () => {
           const cost = 20;
           if (playerMana < cost) {
-            alert('Not enough mana to cast Ice Shield!');
+            alert('Not enough mana to cast Ice Wall!');
+            return;
+          }
+
+          if (magicModifiers.defenseBonus > 0) {
+            alert('Defense is already boosted!');
             return;
           }
 
@@ -502,29 +530,79 @@ function BattleScene({
             return { ...prevStats, currentMana: newMana };
           });
 
-          setPlayerState('defending');
-          setDefenseBoost(true);
+          // Apply defense boost of 6
+          setMagicModifiers((prevModifiers) => ({
+            ...prevModifiers,
+            defenseBonus: prevModifiers.defenseBonus + 6,
+          }));
           playIceShieldSound();
 
           // Create Ice Shield Visual Effect
           const projectile = {
             x: playerPositionRef.current.x,
             y: playerPositionRef.current.y,
-            targetX: playerPositionRef.current.x,
-            targetY: playerPositionRef.current.y,
-            speed: 0, // Static effect
-            size: 80, // Fixed size for shield
+            targetX: enemyPositionRef.current.x,
+            targetY: enemyPositionRef.current.y,
+            speed: calculateProjectileSpeed(playerInt), // Dynamic speed
+            size: calculateProjectileSize(playerInt), // Dynamic size
             image: iceShieldImage.current, // Specific to Ice Shield
             isShield: true, // Identify as shield
           };
           projectilesRef.current.push(projectile);
 
-          setTimeout(() => {
-            setPlayerState('normal');
-            setDefenseBoost(false);
-            setCurrentTurn('Enemy');
-            isClicked.current = 0; // Reset for the next player turn
-          }, 1000);
+          // Transition to Enemy's turn
+          setCurrentTurn('Enemy');
+          isClicked.current = 0; // Reset for the next player turn
+        },
+      },
+      {
+        name: 'Rage',
+        icon: '/projectiles/rage.png',
+        description:
+          'Increases your attack power until the fight ends. Costs 25 mana.',
+        manaCost: 25, // Mana cost for Rage
+        projectileImageSrc: '/projectiles/rage.png', // Optional
+        effect: () => {
+          const cost = 25;
+          if (playerMana < cost) {
+            alert('Not enough mana to cast Rage!');
+            return;
+          }
+
+          if (magicModifiers.attackBonus > 0) {
+            alert('Rage is already active!');
+            return;
+          }
+
+          // Deduct mana
+          setStats((prevStats) => {
+            const newMana = prevStats.currentMana - cost;
+            return { ...prevStats, currentMana: newMana };
+          });
+
+          // Apply attack bonus of 10
+          setMagicModifiers((prevModifiers) => ({
+            ...prevModifiers,
+            attackBonus: prevModifiers.attackBonus + 10,
+          }));
+          playRageSound();
+
+          // Create Rage Visual Effect
+          const projectile = {
+            x: playerPositionRef.current.x,
+            y: playerPositionRef.current.y,
+            targetX: enemyPositionRef.current.x,
+            targetY: enemyPositionRef.current.y,
+            speed: calculateProjectileSpeed(playerInt), // Dynamic speed
+            size: calculateProjectileSize(playerInt), // Dynamic size
+            image: rageImage.current, // Specific to Rage
+            isEffect: true, // Identify as a non-damaging effect
+          };
+          projectilesRef.current.push(projectile);
+
+          // Transition to Enemy's turn
+          setCurrentTurn('Enemy');
+          isClicked.current = 0; // Reset for the next player turn
         },
       },
       // Add more magic skills as needed
@@ -536,8 +614,10 @@ function BattleScene({
       playFireballSound,
       playLightningSound,
       playIceShieldSound,
+      playRageSound,
       playerMana,
       setStats,
+      magicModifiers,
     ]
   );
 
@@ -583,7 +663,7 @@ function BattleScene({
       } else {
         playerX =
           centerX - horizontalOffset + radius * Math.cos(anglePlayerRef.current);
-        playerY = centerY;
+        playerY = centerY + radius * Math.sin(anglePlayerRef.current);
       }
 
       // Adjust position to center the image
@@ -671,6 +751,21 @@ function BattleScene({
 
           // Shields are handled separately; no movement or impact
           continue; // Skip movement for shields
+        }
+
+        // Draw non-shield projectiles
+        if (proj.isEffect) {
+          // Draw non-damaging effects like Rage
+          ctx.drawImage(
+            proj.image,
+            proj.x - proj.size / 2,
+            proj.y - proj.size / 2,
+            proj.size,
+            proj.size
+          );
+          // Remove immediately or add animation as needed
+          projectilesRef.current.splice(i, 1);
+          continue;
         }
 
         // Calculate distance to target
@@ -809,8 +904,8 @@ function BattleScene({
         20,
         canvasHeight - 180
       );
-         // Draw experience and level
-         ctx.fillStyle = 'blue';
+      // Draw Mana
+      ctx.fillStyle = 'blue';
       ctx.fillText(
         `MP: ${currentMana}`,
         20,
@@ -862,7 +957,11 @@ function BattleScene({
         ctx.fillStyle = 'white';
         ctx.font = '24px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText('Select a Magic Skill', menuX + menuWidth / 2, menuY + 40);
+        ctx.fillText(
+          'Select a Magic Skill',
+          menuX + menuWidth / 2,
+          menuY + 40
+        );
 
         // Define magic skill button layout
         const skillButtonWidth = 150;
@@ -937,6 +1036,7 @@ function BattleScene({
       enemyPositionRef,
       playerMana,
       stats.maxMana,
+      magicModifiers, // Added magicModifiers to dependencies
     ]
   );
 
@@ -968,6 +1068,14 @@ function BattleScene({
     updatedStats.currentHP = updatedStats.maxHp;
     updatedStats.currentMana = updatedStats.maxMana;
 
+    // Reset magic modifiers
+    setMagicModifiers({
+      attackBonus: 0,
+      defenseBonus: 0,
+      damageMultiplier: 1,
+      // Reset other modifiers as needed
+    });
+
     // Update local state
     setPlayerHP(updatedStats.maxHp);
     setPlayerMana(updatedStats.maxMana);
@@ -975,7 +1083,7 @@ function BattleScene({
     // Update the centralized stats state
     setStats(updatedStats);
 
-    console.log('Player stats have been reset to maximum values.');
+    console.log('Player stats and magic modifiers have been reset to maximum values.');
   }, [stats, setStats]);
 
   // Function to handle loot drops
@@ -1026,10 +1134,13 @@ function BattleScene({
         setEnemyHP((prevHP) => {
           // Calculate the bonus attack from dexterity
           const dexAttackBonus = Math.floor(playerDex / 5);
-          const adjustedAttack = playerAttack + dexAttackBonus;
+          const adjustedAttack = playerAttack + dexAttackBonus + magicModifiers.attackBonus;
 
           // Calculate the damage
-          const damage = Math.max(0, adjustedAttack - enemyStats.defense);
+          let damage = Math.max(0, adjustedAttack - enemyStats.defense);
+
+          // Apply damage multiplier from magicModifiers
+          damage = Math.round(damage * magicModifiers.damageMultiplier);
 
           // Determine if we get a critical hit
           const criticalChance = Math.floor(playerDex / 5) / 100; // 1% crit chance per 5 dexterity points
@@ -1061,7 +1172,10 @@ function BattleScene({
         if (wasRemoved) {
           // Perform the heal
           setPlayerHP((prevHP) =>
-            Math.min(prevHP + 15 + playerLuck * 0.8 + playerInt * 0.8, playerMaxHp)
+            Math.min(
+              prevHP + 15 + playerLuck * 0.8 + playerInt * 0.8,
+              playerMaxHp
+            )
           );
 
           playHealSound(); // Play heal sound effect
@@ -1073,12 +1187,25 @@ function BattleScene({
           isClicked.current -= 1; // Allow the player to click again
         }
       } else if (skillName === 'Defend') {
-        // Implement defend functionality
+        // Implement defend functionality by increasing defense temporarily
+        // For consistency, use magicModifiers to apply a temporary defense boost
+        // Here, we can set a temporary defense boost, e.g., +5 for the next enemy turn
+
+        const defenseBoostAmount = 5;
+
+        setMagicModifiers((prevModifiers) => ({
+          ...prevModifiers,
+          defenseBonus: prevModifiers.defenseBonus + defenseBoostAmount,
+        }));
         setPlayerState('defending');
-        setDefenseBoost(true);
+        playHealSound(); // Or a different sound for defend
+
         setTimeout(() => {
           setPlayerState('normal');
-          setDefenseBoost(false);
+          setMagicModifiers((prevModifiers) => ({
+            ...prevModifiers,
+            defenseBonus: prevModifiers.defenseBonus - defenseBoostAmount,
+          }));
           setCurrentTurn('Enemy');
           isClicked.current = 0; // Reset for the next player turn
         }, 500);
@@ -1103,6 +1230,7 @@ function BattleScene({
       removeItemFromInventory,
       playerMaxHp,
       enemyHP,
+      magicModifiers,
     ]
   );
 
@@ -1136,21 +1264,29 @@ function BattleScene({
             const isCritical = randCrit < critChance;
 
             // Calculate base damage
-            const baseDamage = Math.max(0, enemyStats.attack - effectivePlayerDefense);
+            const baseDamage = Math.max(
+              0,
+              enemyStats.attack - effectivePlayerDefense
+            );
+
+            // Apply damage multiplier from magicModifiers
+            const damage = Math.floor(
+              baseDamage * magicModifiers.damageMultiplier
+            );
 
             // Apply critical multiplier if critical hit
-            const damage = isCritical ? Math.floor(baseDamage * 1.3) : baseDamage;
+            const finalDamage = isCritical ? Math.floor(damage * 1.3) : damage;
 
             // Optionally, play a different sound for critical hits
             if (isCritical) {
               console.log('Critical hit!');
               playCriticalSound(); // Play critical hit sound
-            } else if (damage > 0) {
+            } else if (finalDamage > 0) {
               playDamageSound();
             }
 
             // Calculate new HP, ensuring it doesn't go below 0
-            const newHP = Math.max(prevHP - damage, 0);
+            const newHP = Math.max(prevHP - finalDamage, 0);
             setStats((prevStats) => ({
               ...prevStats,
               currentHP: newHP,
@@ -1180,6 +1316,7 @@ function BattleScene({
     playerAgility,
     effectivePlayerDefense,
     enemyStats,
+    magicModifiers.damageMultiplier,
   ]);
 
   // Handle enemy defeat
@@ -1219,6 +1356,14 @@ function BattleScene({
     updatedStats.currentHP = updatedStats.maxHp;
     updatedStats.currentMana = updatedStats.maxMana;
 
+    // Remove all magic modifiers
+    setMagicModifiers({
+      attackBonus: 0,
+      defenseBonus: 0,
+      damageMultiplier: 1,
+      // Reset other modifiers as needed
+    });
+
     // Update the centralized stats state
     setStats(updatedStats);
 
@@ -1241,7 +1386,7 @@ function BattleScene({
     onBackToLobby,
     selectedEnemy,
     handleLootDrops,
-    setStats, // Ensure setStats is included
+    setStats,
   ]);
 
   // Watch for enemyHP changes to handle enemy defeat
@@ -1257,11 +1402,26 @@ function BattleScene({
     setShowDefeatModal(true);
     playDefeatSound(); // Play defeat sound effect
 
+    // Remove all magic modifiers
+    setMagicModifiers({
+      attackBonus: 0,
+      defenseBonus: 0,
+      damageMultiplier: 1,
+      // Reset other modifiers as needed
+    });
+
     // Return to lobby after delay
     setTimeout(() => {
       onBackToLobby();
     }, 5000);
   }, [playDefeatSound, onBackToLobby]);
+
+  // Watch for playerHP changes to handle player defeat
+  useEffect(() => {
+    if (playerHP <= 0) {
+      handlePlayerDefeat();
+    }
+  }, [playerHP, handlePlayerDefeat]);
 
   // Mouse event handlers for the canvas
   const handleMouseMove = useCallback(
@@ -1385,7 +1545,7 @@ function BattleScene({
             setShowMagicMenu(false);
 
             // Transition to enemy turn if not already handled by the skill effect
-            if (skill.name !== 'Ice Shield') {
+            if (!['Ice Wall', 'Rage'].includes(skill.name)) {
               setPlayerState('casting');
               setTimeout(() => {
                 setPlayerState('normal');
@@ -1426,15 +1586,16 @@ function BattleScene({
       // Optionally, handle clicks on inventory items here
       // For example, using or equipping items
     },
-    [canvasWidth, canvasHeight, showMagicMenu, magicSkills, playClickSound, resetStatsToMax, onBackToLobby]
+    [
+      canvasWidth,
+      canvasHeight,
+      showMagicMenu,
+      magicSkills,
+      playClickSound,
+      resetStatsToMax,
+      onBackToLobby,
+    ]
   );
-
-  // Watch for playerHP changes to handle player defeat
-  useEffect(() => {
-    if (playerHP <= 0) {
-      handlePlayerDefeat();
-    }
-  }, [playerHP, handlePlayerDefeat]);
 
   return (
     <div
