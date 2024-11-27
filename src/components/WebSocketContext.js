@@ -1,7 +1,7 @@
-/* eslint-disable no-unused-vars */
+/* eslint-disable react-hooks/exhaustive-deps */
 // src/contexts/WebSocketContext.js
 import React, { createContext, useState, useEffect, useRef } from 'react';
-import Cookies from 'js-cookie';
+
 
 // Create the context
 export const WebSocketContext = createContext();
@@ -14,6 +14,9 @@ export const WebSocketProvider = ({ children, playerId, nickname, selectedPng, s
   const [chatMessages, setChatMessages] = useState([]);
   const [players, setPlayers] = useState({});
   const [isConnected, setIsConnected] = useState(false);
+
+  // Current player's position
+  const [currentPosition, setCurrentPosition] = useState({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
 
   useEffect(() => {
     // Ensure all necessary player information is available
@@ -43,7 +46,7 @@ export const WebSocketProvider = ({ children, playerId, nickname, selectedPng, s
           agility: stats.agility,
           luck: stats.luck,
           nickname: nickname.trim(),
-          position: { x: window.innerWidth / 2, y: window.innerHeight / 2 },
+          position: currentPosition,
         })
       );
     };
@@ -60,10 +63,6 @@ export const WebSocketProvider = ({ children, playerId, nickname, selectedPng, s
               ...prev,
               [data.player.id]: {
                 ...data.player,
-                x: Math.random() * (window.innerWidth - 100),
-                y: Math.random() * (window.innerHeight - 100),
-                dx: (Math.random() - 0.5) * 2,
-                dy: (Math.random() - 0.5) * 2,
               },
             };
           });
@@ -78,17 +77,7 @@ export const WebSocketProvider = ({ children, playerId, nickname, selectedPng, s
           break;
 
         case 'allPlayers':
-          const playersWithMovement = Object.keys(data.players).reduce((acc, id) => {
-            acc[id] = {
-              ...data.players[id],
-              x: Math.random() * (window.innerWidth - 100),
-              y: Math.random() * (window.innerHeight - 100),
-              dx: (Math.random() - 0.5) * 2,
-              dy: (Math.random() - 0.5) * 2,
-            };
-            return acc;
-          }, {});
-          setPlayers(playersWithMovement);
+          setPlayers(data.players);
           break;
 
         case 'playerMoved':
@@ -126,11 +115,11 @@ export const WebSocketProvider = ({ children, playerId, nickname, selectedPng, s
     return () => {
       ws.close();
     };
-  }, [playerId, nickname, selectedPng, stats]);
+  }, [playerId, nickname, selectedPng, stats]); // Removed currentPosition
 
   // Function to send chat messages
   const sendMessage = (message) => {
-    if (wsRef.current && isConnected) {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(
         JSON.stringify({
           type: 'chatMessage',
@@ -143,8 +132,24 @@ export const WebSocketProvider = ({ children, playerId, nickname, selectedPng, s
     }
   };
 
+  // Function to send movement updates
+  const sendMove = (position) => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(
+        JSON.stringify({
+          type: 'move',
+          id: playerId,
+          position: position,
+        })
+      );
+      setCurrentPosition(position);
+    } else {
+      console.warn('WebSocket is not connected. Move not sent.');
+    }
+  };
+
   return (
-    <WebSocketContext.Provider value={{ chatMessages, players, sendMessage, isConnected }}>
+    <WebSocketContext.Provider value={{ chatMessages, players, sendMessage, sendMove, isConnected, currentPosition }}>
       {children}
     </WebSocketContext.Provider>
   );
