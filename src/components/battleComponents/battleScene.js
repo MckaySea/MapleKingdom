@@ -52,6 +52,11 @@ function BattleScene({
   // Player HP and Mana states
   const [playerHP, setPlayerHP] = useState(stats.currentHP || playerMaxHp);
   const [playerMana, setPlayerMana] = useState(stats.currentMana || maxMana);
+  const [tooltip, setTooltip] = useState({
+    visible: false,
+    content: '',
+    position: { x: 0, y: 0 },
+  });
 
   // Update HP and Mana when stats change (e.g., leveling up)
   useEffect(() => {
@@ -85,6 +90,9 @@ function BattleScene({
   const isClicked = useRef(0); // Ref to track if a button has been clicked
   const enemyDefeatHandled = useRef(false); // Ref to track if enemy defeat has been handled
 
+  // Ref to manage active persistent effects
+  const activeEffectsRef = useRef([]);
+
   // Define an array of enemy types with their stats and loot tables
   const enemies = useMemo(
     () => [
@@ -106,136 +114,7 @@ function BattleScene({
           { item: 'Wood Staff', dropRate: 0.1 },
         ],
       },
-      {
-        name: 'Baby Dragon',
-        image: '/sprites3/8.png',
-        attackImage: '/sprites2/2.png',
-        attack: 18,
-        defense: 5,
-        maxHp: 60,
-        agility: 10,
-        level: 1,
-        lootTable: [
-          { item: 'Health Potion', dropRate: 0.2 },
-          { item: 'Katana', dropRate: 0.2 },
-          { item: 'Maple Shield', dropRate: 0.1 },
-          { item: 'White Gloves', dropRate: 0.1 },
-          { item: 'Gold Coin', dropRate: 0.1 },
-          { item: 'Wood Wand', dropRate: 0.2 },
-        ],
-      },
-      {
-        name: 'Baby Bunny',
-        image: '/mobs/bunnyidle.png',
-        attackImage: '/mobs/bunnyatk.png',
-        attack: 20,
-        defense: 7,
-        maxHp: 70,
-        agility: 10,
-        level: 2,
-        lootTable: [
-          { item: 'Health Potion', dropRate: 0.2 },
-          { item: 'Katana', dropRate: 0.3 },
-          { item: 'Maple Shield', dropRate: 0.1 },
-          { item: 'Pitch Fork', dropRate: 0.1 },
-          { item: 'White Gloves', dropRate: 0.1 },
-          { item: 'Gold Coin', dropRate: 0.1 },
-          { item: 'Wood Wand', dropRate: 0.1 },
-          { item: 'Wood Staff', dropRate: 0.1 },
-        ],
-      },
-      {
-        name: 'Alien',
-        image: '/mobs/alienidle.png',
-        attackImage: '/mobs/alienatk.png',
-        attack: 23,
-        defense: 12,
-        maxHp: 105,
-        agility: 15,
-        level: 5,
-        lootTable: [
-          { item: 'Gold Coin', dropRate: 0.4 },
-          { item: 'Health Potion', dropRate: 0.2 },
-          { item: 'Round Mace', dropRate: 0.2 },
-          { item: 'Steel Club', dropRate: 0.1 },
-          { item: 'White Gloves', dropRate: 0.1 },
-          { item: 'Skull Staff', dropRate: 0.1 },
-        ],
-      },
-      {
-        name: 'Golem',
-        image: '/pigs/1.png',
-        attackImage: '/pigs/0.png',
-        attack: 32,
-        defense: 23,
-        maxHp: 130,
-        agility: 15,
-        level: 7,
-        lootTable: [
-          { item: 'Gold Coin', dropRate: 0.5 },
-          { item: 'Health Potion', dropRate: 0.2 },
-          { item: 'Steel Club', dropRate: 0.2 },
-          { item: 'Maple Axe', dropRate: 0.1 },
-          { item: 'Skull Staff', dropRate: 0.1 },
-          { item: 'Intellect Earring', dropRate: 0.1 },
-          { item: 'Bear Trinket', dropRate: 0.1 },
-        ],
-      },
-      {
-        name: 'Yeti',
-        image: '/sprites4/2.png',
-        attackImage: '/sprites4/0.png',
-        attack: 36,
-        defense: 28,
-        maxHp: 150,
-        agility: 18,
-        level: 10,
-        lootTable: [
-          { item: 'Gold Coin', dropRate: 0.5 },
-          { item: 'Health Potion', dropRate: 0.3 },
-          { item: 'Bear Trinket', dropRate: 0.1 },
-          { item: 'Attack Earring', dropRate: 0.1 },
-          { item: 'Intellect Earring', dropRate: 0.1 },
-          { item: 'Zard', dropRate: 0.1 },
-        ],
-      },
-      {
-        name: 'Yak',
-        image: '/mobs/yakidle.png',
-        attackImage: '/mobs/yakatk.png',
-        attack: 41,
-        defense: 32,
-        maxHp: 170,
-        agility: 18,
-        level: 11,
-        lootTable: [
-          { item: 'Gold Coin', dropRate: 0.5 },
-          { item: 'Zard Cleaver', dropRate: 0.1 },
-          { item: 'Black Cape', dropRate: 0.1 },
-          { item: 'Health Potion', dropRate: 0.4 },
-          { item: 'Maple Staff', dropRate: 0.1 },
-          { item: 'Bath Robe', dropRate: 0.1 },
-        ],
-      },
-      {
-        name: 'Stumpy',
-        image: '/mobs/stumpidle.png',
-        attackImage: '/mobs/stumpatk.png',
-        attack: 49,
-        defense: 33,
-        maxHp: 200,
-        agility: 20,
-        level: 13,
-        lootTable: [
-          { item: 'Gold Coin', dropRate: 0.8 },
-          { item: 'Zard Cleaver', dropRate: 0.2 },
-          { item: 'Health Potion', dropRate: 0.4 },
-          { item: 'Black Cape', dropRate: 0.1 },
-          { item: 'Maple Staff', dropRate: 0.1 },
-          { item: 'Bath Robe', dropRate: 0.2 },
-        ],
-      },
-      // Add more enemies as needed
+      // ... other enemies
     ],
     []
   );
@@ -411,6 +290,25 @@ function BattleScene({
   const playerPositionRef = useRef({ x: 0, y: 0 });
   const enemyPositionRef = useRef({ x: 0, y: 0 });
 
+  // **Added Feature: Load new effect images for drop and overlay**
+  const dropImage = useRef(new Image()); // Image that drops from the sky
+  const overlayImage = useRef(new Image()); // Image that overlays the player
+
+  useEffect(() => {
+    // Load Drop Image
+    dropImage.current.src = '/effects/dropEffect.png'; // Replace with your drop effect image path
+    dropImage.current.onerror = () => {
+      dropImage.current.src = '/effects/defaultDrop.png'; // Fallback image
+    };
+
+    // Load Overlay Image
+    overlayImage.current.src = '/effects/overlayEffect.png'; // Replace with your overlay effect image path
+    overlayImage.current.onerror = () => {
+      overlayImage.current.src = '/effects/defaultOverlay.png'; // Fallback image
+    };
+  }, []);
+  // **End of Added Feature**
+
   // Define magic skills with projectile launch
   const magicSkills = useMemo(
     () => [
@@ -418,7 +316,7 @@ function BattleScene({
         name: 'Fireball',
         icon: '/projectiles/fireball.png',
         description: 'Deals fire damage to the enemy. Costs 10 mana.',
-        manaCost: 15, // Mana cost for Fireball
+        manaCost: 10, // Mana cost for Fireball
         projectileImageSrc: '/projectiles/fireball.png', // Unique image for Fireball
         effect: () => {
           const cost = 10;
@@ -559,7 +457,7 @@ function BattleScene({
         name: 'Rage',
         icon: '/projectiles/rage.png',
         description:
-          'Increases your attack power until the fight ends. Costs 25 mana.',
+          'Increases your attack by 8 until the fight ends. Costs 25 mana.',
         manaCost: 25, // Mana cost for Rage
         projectileImageSrc: '/projectiles/rage.png', // Optional
         effect: () => {
@@ -580,25 +478,22 @@ function BattleScene({
             return { ...prevStats, currentMana: newMana };
           });
 
-          // Apply attack bonus of 10
+          // Apply attack bonus of 8
           setMagicModifiers((prevModifiers) => ({
             ...prevModifiers,
-            attackBonus: prevModifiers.attackBonus + 10,
+            attackBonus: prevModifiers.attackBonus + 8,
           }));
           playRageSound();
 
-          // Create Rage Visual Effect
-          const projectile = {
-            x: playerPositionRef.current.x,
-            y: playerPositionRef.current.y,
-            targetX: enemyPositionRef.current.x,
-            targetY: enemyPositionRef.current.y,
-            speed: calculateProjectileSpeed(playerInt), // Dynamic speed
-            size: calculateProjectileSize(playerInt), // Dynamic size
-            image: rageImage.current, // Specific to Rage
-            isEffect: true, // Identify as a non-damaging effect
-          };
-          projectilesRef.current.push(projectile);
+          // Add Rage Effect to activeEffectsRef
+          activeEffectsRef.current.push({
+            type: 'rage',
+            image: rageImage.current,
+            size: 80, // Adjust size as needed
+            angle: 0, // Initial angle for circular motion
+            radius: 50, // Radius of the floating effect
+            speed: 0.02, // Speed of rotation
+          });
 
           // Transition to Enemy's turn
           setCurrentTurn('Enemy');
@@ -623,10 +518,10 @@ function BattleScene({
 
   // Skills array
   const skills = [
-    { name: 'Attack', icon: '/swordmaple.png' },
-    { name: 'Defend', icon: '/items/mapleshield.png' },
-    { name: 'Heal', icon: '/items/hppot.png' },
-    { name: 'Magic', icon: '/items/maplestaff.png' }, // Magic skill
+    { name: 'Attack', icon: '/swordmaple.png', description: 'Perform a basic attack dealing physical damage.' },
+    { name: 'Defend', icon: '/items/mapleshield.png', description: 'Increase your defense temporarily.' },
+    { name: 'Heal', icon: '/items/hppot.png', description: 'Restore a portion of your health.' },
+    { name: 'Magic', icon: '/items/maplestaff.png', description: 'Use magical abilities to damage or buff.' }, // Magic skill
   ];
 
   // Drawing function for CanvasRenderer
@@ -753,8 +648,42 @@ function BattleScene({
           continue; // Skip movement for shields
         }
 
-        // Draw non-shield projectiles
         if (proj.isEffect) {
+          // **Added Feature: Handle custom effects like drop and overlay**
+          if (proj.type === 'dropAndOverlay') {
+            // Animate drop from the top of the screen to the player's position
+            const dropSpeed = 5; // Adjust speed as needed
+            proj.y += dropSpeed;
+
+            // Check if the drop has reached the player
+            if (proj.y >= playerPositionRef.current.y) {
+              // Add overlay effect on the player
+              const overlayEffect = {
+                x: playerPositionRef.current.x,
+                y: playerPositionRef.current.y - playerHeight / 2, // Position on top of the player
+                image: overlayImage.current,
+                size: playerWidth,
+                duration: 500, // Duration in ms
+                startTime: Date.now(),
+              };
+              impactSpritesRef.current.push(overlayEffect);
+
+              // Remove the drop effect
+              projectilesRef.current.splice(i, 1);
+            } else {
+              // Draw the drop image falling
+              ctx.drawImage(
+                dropImage.current,
+                proj.x - proj.size / 2,
+                proj.y - proj.size / 2,
+                proj.size,
+                proj.size
+              );
+            }
+
+            continue; // Skip further processing for this effect
+          }
+
           // Draw non-damaging effects like Rage
           ctx.drawImage(
             proj.image,
@@ -764,7 +693,7 @@ function BattleScene({
             proj.size
           );
           // Remove immediately or add animation as needed
-          projectilesRef.current.splice(i, 1);
+          // projectilesRef.current.splice(i, 1);
           continue;
         }
 
@@ -858,6 +787,7 @@ function BattleScene({
         }
       }
 
+      // **Added Feature: Handle overlay effects on the player**
       // Render and update impact sprites
       for (let i = impactSpritesRef.current.length - 1; i >= 0; i--) {
         const impact = impactSpritesRef.current[i];
@@ -885,6 +815,39 @@ function BattleScene({
         // Reset opacity
         ctx.globalAlpha = 1;
       }
+      // **End of Added Feature**
+
+      // **Added Feature: Render Active Persistent Effects (e.g., Rage)**
+      activeEffectsRef.current.forEach((effect, index) => {
+        if (effect.type === 'rage') {
+          // Update the angle for rotation
+          effect.angle += effect.speed;
+          if (effect.angle > 2 * Math.PI) {
+            effect.angle -= 2 * Math.PI;
+          }
+
+          // Calculate the position around the player
+          const offsetX = effect.radius * Math.cos(effect.angle);
+          const offsetY = effect.radius * Math.sin(effect.angle);
+
+          const effectX = playerPositionRef.current.x + offsetX - effect.size / 2;
+          const effectY = playerPositionRef.current.y + offsetY - effect.size / 2;
+
+          // Draw the rage effect image
+          if (effect.image.complete) { // Ensure image is loaded
+            ctx.drawImage(
+              effect.image,
+              effectX,
+              effectY,
+              effect.size,
+              effect.size
+            );
+          }
+        }
+
+        // Add more effect types here if needed
+      });
+      // **End of Added Feature**
 
       // Draw turn indicator
       ctx.fillStyle = 'red';
@@ -977,34 +940,41 @@ function BattleScene({
           const col = index % cols;
           const x = startX + col * (skillButtonWidth + spacingX);
           const y = startY + row * (skillButtonHeight + spacingY);
-
+        
           // Check if this skill is hovered
           const isHovered = hoveredMagicSkillRef.current === index;
-
+        
           // Draw skill button background
-          ctx.fillStyle = isHovered ? '#555' : '#777';
+          ctx.fillStyle = isHovered ? '#555' : '#777'; // Change color on hover
           ctx.fillRect(x, y, skillButtonWidth, skillButtonHeight);
-
+        
           // Draw skill icon
           const skillIcon = new Image();
           skillIcon.src = skill.icon;
           skillIcon.onload = () => {
             ctx.drawImage(skillIcon, x + 10, y + 10, 40, 40);
           };
-
+        
           // Draw skill name (centered)
           ctx.fillStyle = 'white';
           ctx.font = '18px Arial';
           ctx.textAlign = 'center'; // Center text horizontally
           ctx.textBaseline = 'middle'; // Center text vertically
-
+        
           // Calculate the center of the button
           const textX = x + skillButtonWidth / 2;
           const textY = y + skillButtonHeight / 2;
-
+        
           // Draw the skill name at the center of the button
           ctx.fillText(skill.name, textX, textY);
         });
+
+        // Optionally, draw borders for debugging
+        // magicSkillAreasRef.current.forEach((area) => {
+        //   ctx.strokeStyle = '#FFD700'; // Gold border
+        //   ctx.lineWidth = 2;
+        //   ctx.strokeRect(area.x, area.y, area.width, area.height);
+        // });
       }
 
       // Increment angles for circular motion
@@ -1037,6 +1007,11 @@ function BattleScene({
       playerMana,
       stats.maxMana,
       magicModifiers, // Added magicModifiers to dependencies
+      // **Added Feature: Include drop and overlay images**
+      dropImage.current,
+      overlayImage.current,
+      playerImageSize, // Assuming size is square
+      activeEffectsRef.current, // Ensure active effects are included
     ]
   );
 
@@ -1058,6 +1033,7 @@ function BattleScene({
 
   // Ref to track hovered magic skill
   const hoveredMagicSkillRef = useRef(null);
+  const magicSkillAreasRef = useRef([]); // To store magic skill button areas
 
   // Reset Stats to Maximum Values Function
   const resetStatsToMax = useCallback(() => {
@@ -1082,6 +1058,9 @@ function BattleScene({
 
     // Update the centralized stats state
     setStats(updatedStats);
+
+    // Clear active effects
+    activeEffectsRef.current = [];
 
     console.log('Player stats and magic modifiers have been reset to maximum values.');
   }, [stats, setStats]);
@@ -1231,6 +1210,7 @@ function BattleScene({
       playerMaxHp,
       enemyHP,
       magicModifiers,
+      activeEffectsRef.current, // Ensure active effects are considered
     ]
   );
 
@@ -1299,7 +1279,7 @@ function BattleScene({
         setTimeout(() => {
           setEnemyState('normal');
           setCurrentTurn('Player');
-          isClicked.current = 0; // Reset for the next player turn
+          isClicked.current = 0; // Reset click
         }, 500);
       }, 1000);
 
@@ -1364,6 +1344,9 @@ function BattleScene({
       // Reset other modifiers as needed
     });
 
+    // Clear active effects
+    activeEffectsRef.current = [];
+
     // Update the centralized stats state
     setStats(updatedStats);
 
@@ -1410,6 +1393,9 @@ function BattleScene({
       // Reset other modifiers as needed
     });
 
+    // Clear active effects
+    activeEffectsRef.current = [];
+
     // Return to lobby after delay
     setTimeout(() => {
       onBackToLobby();
@@ -1423,86 +1409,112 @@ function BattleScene({
     }
   }, [playerHP, handlePlayerDefeat]);
 
-  // Mouse event handlers for the canvas
-  const handleMouseMove = useCallback(
-    (e) => {
-      const canvas = e.target;
-      const rect = canvas.getBoundingClientRect();
-      const mouseX = e.clientX - rect.left;
-      const mouseY = e.clientY - rect.top;
+  // Tooltip Handlers
+  const handleSkillMouseEnter = (description, event) => {
+    const rect = event.target.getBoundingClientRect();
+    setTooltip({
+      visible: true,
+      content: description,
+      position: { x: rect.left + rect.width / 2, y: rect.top },
+    });
+  };
 
-      if (showMagicMenu) {
-        // Handle hover over magic skill buttons
-        const menuWidth = 400;
-        const menuHeight = 300;
-        const menuX = (canvasWidth - menuWidth) / 2;
-        const menuY = (canvasHeight - menuHeight) / 2;
+  const handleSkillMouseLeave = () => {
+    setTooltip({ visible: false, content: '', position: { x: 0, y: 0 } });
+  };
 
-        const skillButtonWidth = 150;
-        const skillButtonHeight = 60;
-        const spacingX = 20;
-        const spacingY = 20;
-        const startX = menuX + spacingX;
-        const startY = menuY + 80;
+  // Handle Magic Menu Skill Areas
+  useEffect(() => {
+    if (showMagicMenu) {
+      const menuWidth = 400;
+      const menuHeight = 300;
+      const menuX = (canvasWidth - menuWidth) / 2;
+      const menuY = (canvasHeight - menuHeight) / 2;
 
-        let hoveredSkillIndex = null;
+      const skillButtonWidth = 150;
+      const skillButtonHeight = 60;
+      const spacingX = 20;
+      const spacingY = 20;
+      const startX = menuX + spacingX;
+      const startY = menuY + 80;
 
-        magicSkills.forEach((skill, index) => {
-          const cols = 2; // Number of columns
-          const row = Math.floor(index / cols);
-          const col = index % cols;
-          const x = startX + col * (skillButtonWidth + spacingX);
-          const y = startY + row * (skillButtonHeight + spacingY);
+      const areas = magicSkills.map((skill, index) => {
+        const cols = 2; // Number of columns
+        const row = Math.floor(index / cols);
+        const col = index % cols;
+        const x = startX + col * (skillButtonWidth + spacingX);
+        const y = startY + row * (skillButtonHeight + spacingY);
+        return {
+          name: skill.name,
+          description: skill.description,
+          x,
+          y,
+          width: skillButtonWidth,
+          height: skillButtonHeight,
+        };
+      });
 
-          if (
-            mouseX >= x &&
-            mouseX <= x + skillButtonWidth &&
-            mouseY >= y &&
-            mouseY <= y + skillButtonHeight
-          ) {
-            hoveredSkillIndex = index;
-          }
+      magicSkillAreasRef.current = areas;
+    } else {
+      magicSkillAreasRef.current = [];
+    }
+  }, [showMagicMenu, magicSkills, canvasWidth, canvasHeight]);
+
+  // **Added Feature: Handle overlay effects on the player**
+  // The overlay effects are already handled in the draw function within the projectilesRef loop
+  // No additional code needed here
+  // **End of Added Feature**
+
+  // **Add this useEffect to hide tooltip when magic menu is closed**
+  useEffect(() => {
+    if (!showMagicMenu) {
+      setTooltip({ visible: false, content: '', position: { x: 0, y: 0 } });
+    }
+  }, [showMagicMenu]);
+
+  // Handle canvas mouse move for magic menu tooltips
+  const handleCanvasMouseMove = (e) => {
+    const canvas = e.target;
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    if (showMagicMenu) {
+      const areas = magicSkillAreasRef.current;
+      const hoveredSkill = areas.find(
+        (area) =>
+          mouseX >= area.x &&
+          mouseX <= area.x + area.width &&
+          mouseY >= area.y &&
+          mouseY <= area.y + area.height
+      );
+
+      if (hoveredSkill) {
+        setTooltip({
+          visible: true,
+          content: hoveredSkill.description,
+          position: { x: hoveredSkill.x + hoveredSkill.width / 2, y: hoveredSkill.y },
         });
-
-        if (hoveredMagicSkillRef.current !== hoveredSkillIndex) {
-          hoveredMagicSkillRef.current = hoveredSkillIndex;
-          playHoverSound();
-        }
-
-        return; // Exit early since we're handling magic menu
-      }
-
-      // Check if the mouse is over the Back to Lobby button
-      if (
-        mouseX >= 10 &&
-        mouseX <= 160 &&
-        mouseY >= 10 &&
-        mouseY <= 50
-      ) {
-        if (hoveredButtonRef.current !== 'backButton') {
-          hoveredButtonRef.current = 'backButton';
-          playHoverSound();
-        }
-      }
-      // Check if the mouse is over the Next Turn button
-      else if (
-        mouseX >= 10 &&
-        mouseX <= 160 &&
-        mouseY >= 60 &&
-        mouseY <= 100
-      ) {
-        if (hoveredButtonRef.current !== 'turnButton') {
-          hoveredButtonRef.current = 'turnButton';
-          playHoverSound();
-        }
+        hoveredMagicSkillRef.current = areas.indexOf(hoveredSkill);
       } else {
-        if (hoveredButtonRef.current !== null) {
-          hoveredButtonRef.current = null;
-        }
+        setTooltip({ visible: false, content: '', position: { x: 0, y: 0 } });
+        hoveredMagicSkillRef.current = null;
       }
-    },
-    [canvasWidth, canvasHeight, showMagicMenu, magicSkills, playHoverSound]
-  );
+    } else {
+      // Existing tooltip logic for SkillButtons is handled via SkillButton's onMouseEnter/onMouseLeave
+      // No action needed here
+    }
+  };
+
+  const handleMouseMove = (e) => {
+    if (showMagicMenu) {
+      handleCanvasMouseMove(e);
+    } else {
+      // Handle hover for SkillButtons
+      // This is managed via SkillButton's own onMouseEnter/onMouseLeave
+      // No additional logic needed here
+    }
+  };
 
   const handleMouseClick = useCallback(
     (e) => {
@@ -1513,48 +1525,38 @@ function BattleScene({
 
       if (showMagicMenu) {
         // Handle clicks on magic skill buttons
-        const menuWidth = 400;
-        const menuHeight = 300;
-        const menuX = (canvasWidth - menuWidth) / 2;
-        const menuY = (canvasHeight - menuHeight) / 2;
+        const areas = magicSkillAreasRef.current;
+        const clickedSkill = areas.find(
+          (area) =>
+            mouseX >= area.x &&
+            mouseX <= area.x + area.width &&
+            mouseY >= area.y &&
+            mouseY <= area.y + area.height
+        );
 
-        const skillButtonWidth = 150;
-        const skillButtonHeight = 60;
-        const spacingX = 20;
-        const spacingY = 20;
-        const startX = menuX + spacingX;
-        const startY = menuY + 80;
-
-        magicSkills.forEach((skill, index) => {
-          const cols = 2; // Number of columns
-          const row = Math.floor(index / cols);
-          const col = index % cols;
-          const x = startX + col * (skillButtonWidth + spacingX);
-          const y = startY + row * (skillButtonHeight + spacingY);
-
-          if (
-            mouseX >= x &&
-            mouseX <= x + skillButtonWidth &&
-            mouseY >= y &&
-            mouseY <= y + skillButtonHeight
-          ) {
-            // Execute the magic skill's effect
+        if (clickedSkill) {
+          // Execute the magic skill's effect
+          const skill = magicSkills.find((s) => s.name === clickedSkill.name);
+          if (skill) {
             skill.effect();
-
-            // Close the magic menu
-            setShowMagicMenu(false);
-
-            // Transition to enemy turn if not already handled by the skill effect
-            if (!['Ice Wall', 'Rage'].includes(skill.name)) {
-              setPlayerState('casting');
-              setTimeout(() => {
-                setPlayerState('normal');
-                setCurrentTurn('Enemy');
-                isClicked.current = 0; // Reset click
-              }, 1000);
-            }
           }
-        });
+
+          // Close the magic menu
+          setShowMagicMenu(false);
+
+          // **Hide the tooltip after casting a spell**
+          setTooltip({ visible: false, content: '', position: { x: 0, y: 0 } });
+
+          // Transition to enemy turn if not already handled by the skill effect
+          if (!['Ice Wall', 'Rage'].includes(skill.name)) {
+            setPlayerState('casting');
+            setTimeout(() => {
+              setPlayerState('normal');
+              setCurrentTurn('Enemy');
+              isClicked.current = 0; // Reset click
+            }, 1000);
+          }
+        }
 
         return; // Exit early since we've handled the magic menu
       }
@@ -1569,6 +1571,9 @@ function BattleScene({
         playClickSound();
         resetStatsToMax(); // Reset stats before returning
         onBackToLobby();
+
+        // **Hide the tooltip when Back to Lobby is clicked**
+        setTooltip({ visible: false, content: '', position: { x: 0, y: 0 } });
       }
       // Check if the Next Turn button was clicked
       else if (
@@ -1581,6 +1586,9 @@ function BattleScene({
         setCurrentTurn((prevTurn) =>
           prevTurn === 'Player' ? 'Enemy' : 'Player'
         );
+
+        // **Hide the tooltip when Next Turn is clicked**
+        setTooltip({ visible: false, content: '', position: { x: 0, y: 0 } });
       }
 
       // Optionally, handle clicks on inventory items here
@@ -1620,6 +1628,8 @@ function BattleScene({
               key={skill.name}
               skill={skill}
               onClick={() => handleSkillAction(skill.name)}
+              onMouseEnter={(e) => handleSkillMouseEnter(skill.description, e)}
+              onMouseLeave={handleSkillMouseLeave}
             />
           ))}
       </div>
@@ -1744,7 +1754,31 @@ function BattleScene({
         </div>
       )}
 
-      {/* Loot Modal Removed from BattleScene */}
+      {/* Tooltip Component */}
+      {tooltip.visible && (
+        <div
+          className="retro-tooltip"
+          style={{
+            position: 'absolute',
+            top: tooltip.position.y + 10, // Slight offset
+            left: tooltip.position.x + 10,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            padding: '8px 12px',
+            borderRadius: '4px',
+            pointerEvents: 'none',
+            maxWidth: '200px',
+            zIndex: 300, // Above other elements
+            whiteSpace: 'pre-wrap',
+            fontFamily: 'Press Start 2P', /* Retro pixel font */
+            fontSize: '10px',
+            border: '2px dashed #fff', /* Retro border */
+            boxShadow: '0 0 5px rgba(255, 255, 255, 0.5)', /* Optional shadow for visibility */
+            transform: 'translateX(-50%)',
+          }}
+        >
+          {tooltip.content}
+        </div>
+      )}
     </div>
   );
 }
