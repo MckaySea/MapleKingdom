@@ -6,7 +6,7 @@ export const WebSocketContext = createContext();
 
 // Provider component
 export const WebSocketProvider = ({ children, playerId, nickname, selectedPng, stats }) => {
-  const WS_URL = 'ws://localhost:8080'; // Update to your server's URL
+  const WS_URL = 'wss://cc20-2601-201-8a80-5780-f1a4-733b-b338-88f3.ngrok-free.app'; // Update to your server's URL
   const wsRef = useRef(null);
 
   const [chatMessages, setChatMessages] = useState([]);
